@@ -32,10 +32,5 @@ void main() async {
   // Initialize push notifications
   await NotificationService().init();
 
-  runApp(
-    const ProviderScope(
-      child: App(),
-    ),
-  );
+  runApp(const ProviderScope(child: App()));
 }
-

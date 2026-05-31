@@ -87,6 +87,7 @@ export async function sendSms(
 export async function lookupContractorByTwilioNumber(
   phoneNumber: string
 ): Promise<Contractor | null> {
+  console.log(`[twilio] Looking up contractor for Twilio number: "${phoneNumber}"`);
   const { data, error } = await supabase
     .from('contractors')
     .select('*')
@@ -94,8 +95,10 @@ export async function lookupContractorByTwilioNumber(
     .single();
 
   if (error || !data) {
+    console.warn(`[twilio] Contractor lookup failed for "${phoneNumber}":`, error?.message || 'no data');
     return null;
   }
 
+  console.log(`[twilio] Found contractor: ${data.business_name} (${data.id})`);
   return data as Contractor;
 }

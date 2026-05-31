@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
@@ -66,10 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       final error = _validatePassword(password);
       if (error != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(error),
-            backgroundColor: Colors.red.shade700,
-          ),
+          SnackBar(content: Text(error), backgroundColor: Colors.red.shade700),
         );
         return;
       }
@@ -114,9 +112,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(msg),
-            backgroundColor: msg.contains('Check your email') || msg.contains('reset link')
-                ? Colors.green.shade700
-                : Colors.red.shade700,
+            backgroundColor:
+                msg.contains('Check your email') || msg.contains('reset link')
+                    ? Colors.green.shade700
+                    : Colors.red.shade700,
           ),
         );
         next.clearError();
@@ -185,26 +184,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   const SizedBox(height: 24),
 
                   // ─── Google sign-in button ───────────────────────
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: OutlinedButton.icon(
-                      onPressed: authState.isLoading ? null : _handleGoogleSignIn,
-                      icon: Image.network(
-                        'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg',
-                        width: 20,
-                        height: 20,
-                        errorBuilder: (_, __, ___) => const Icon(Icons.g_mobiledata, size: 24),
-                      ),
-                      label: Text(l10n.loginGoogleButton),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: colors.textPrimary,
-                        side: BorderSide(color: colors.borderSubtle),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
+                  _GoogleSignInButton(
+                    onPressed: authState.isLoading ? null : _handleGoogleSignIn,
+                    label: l10n.loginGoogleButton,
                   ),
                   const SizedBox(height: 20),
 
@@ -273,7 +255,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               size: 20,
                             ),
                             onPressed: () {
-                              setState(() => _obscurePassword = !_obscurePassword);
+                              setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              );
                             },
                           ),
                         ),
@@ -298,20 +282,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     height: 48,
                     child: ElevatedButton(
                       onPressed: authState.isLoading ? null : _handleEmailAuth,
-                      child: authState.isLoading
-                          ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colors.textInverse,
+                      child:
+                          authState.isLoading
+                              ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: colors.textInverse,
+                                ),
+                              )
+                              : Text(
+                                _isRegistering
+                                    ? l10n.loginSignUp
+                                    : l10n.loginSubmit,
                               ),
-                            )
-                          : Text(
-                              _isRegistering
-                                  ? l10n.loginSignUp
-                                  : l10n.loginSubmit,
-                            ),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -335,7 +320,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   // ─── Forgot password (only in login mode) ───────
                   if (!_isRegistering)
                     TextButton(
-                      onPressed: authState.isLoading ? null : _handleForgotPassword,
+                      onPressed:
+                          authState.isLoading ? null : _handleForgotPassword,
                       child: Text(
                         l10n.loginForgot,
                         style: TextStyle(
@@ -347,6 +333,69 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Google Sign-In Button ────────────────────────────────────────────────────
+
+class _GoogleSignInButton extends StatelessWidget {
+  const _GoogleSignInButton({required this.onPressed, required this.label});
+
+  final VoidCallback? onPressed;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: const Color(0xFF3C4043),
+            side: const BorderSide(color: Color(0xFFDADCE0), width: 1.5),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 25),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF3C4043),
+                    letterSpacing: 0.1,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const FaIcon(
+                FontAwesomeIcons.google,
+                size: 18,
+                color: Color(0xFF4285F4),
+              ),
+            ],
           ),
         ),
       ),

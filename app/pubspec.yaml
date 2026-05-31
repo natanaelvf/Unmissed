@@ -31,6 +31,9 @@ dependencies:
   # Phone/URL launching
   url_launcher: ^6.3.1
 
+  # Icons
+  font_awesome_flutter: ^10.8.0
+
   # Supabase Auth
   supabase_flutter: ^2.8.0
 
