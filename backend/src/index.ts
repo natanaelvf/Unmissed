@@ -21,6 +21,7 @@ import { runSatisfactionFollowup } from './jobs/satisfaction-followup';
 import { runDataRetention } from './jobs/data-retention';
 import { runConsentTimeout } from './jobs/consent-timeout';
 import { runSmsReset } from './jobs/sms-reset';
+import { runIntegrityCheck } from './jobs/integrity-check';
 
 const app = express();
 
@@ -108,6 +109,11 @@ cron.schedule('0 0 1 * *', () => {
 app.listen(env.port, () => {
   console.log(`🚀 Server running on port ${env.port}`);
   console.log(`   Health check: http://localhost:${env.port}/health`);
+
+  // Run data integrity checks on startup (non-blocking)
+  runIntegrityCheck().catch((err) =>
+    console.error('[startup] Integrity check failed:', err)
+  );
 });
 
 export default app;

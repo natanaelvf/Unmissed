@@ -88,17 +88,29 @@ export async function lookupContractorByTwilioNumber(
   phoneNumber: string
 ): Promise<Contractor | null> {
   console.log(`[twilio] Looking up contractor for Twilio number: "${phoneNumber}"`);
+
+  // Use .limit() instead of .single() to avoid crashing when duplicate rows exist.
+  // .single() throws "Cannot coerce the result to a single JSON object" on duplicates.
   const { data, error } = await supabase
     .from('contractors')
     .select('*')
     .eq('twilio_phone_number', phoneNumber)
-    .single();
+    .order('created_at', { ascending: true })
+    .limit(2);
 
-  if (error || !data) {
+  if (error || !data || data.length === 0) {
     console.warn(`[twilio] Contractor lookup failed for "${phoneNumber}":`, error?.message || 'no data');
     return null;
   }
 
-  console.log(`[twilio] Found contractor: ${data.business_name} (${data.id})`);
-  return data as Contractor;
+  if (data.length > 1) {
+    console.error(
+      `[twilio] ⚠️  DUPLICATE CONTRACTORS detected for Twilio number "${phoneNumber}"! ` +
+      `Found ${data.length}+ rows. IDs: ${data.map((c) => c.id).join(', ')}. ` +
+      `Using the oldest entry. Please remove duplicates from the contractors table.`
+    );
+  }
+
+  console.log(`[twilio] Found contractor: ${data[0].business_name} (${data[0].id})`);
+  return data[0] as Contractor;
 }
