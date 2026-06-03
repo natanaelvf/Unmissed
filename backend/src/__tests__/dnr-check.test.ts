@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock dependencies using vi.hoisted() to avoid hoisting issues
@@ -91,7 +91,7 @@ describe('DNR Check Job', () => {
 
     expect(mockSendPushNotification).toHaveBeenCalledWith(
       'contractor-001',
-      '🚨 Urgent Lead Not Responding',
+      'ðŸš¨ Urgent Lead Not Responding',
       expect.stringContaining('60 min'),
       expect.objectContaining({ leadId: 'lead-urgent', priority: 'high' })
     );
@@ -117,7 +117,7 @@ describe('DNR Check Job', () => {
 
     await runDnrCheck();
 
-    // Should NOT send alert — 30 min < 1440 min threshold
+    // Should NOT send alert â€” 30 min < 1440 min threshold
     expect(mockSendPushNotification).not.toHaveBeenCalled();
   });
 

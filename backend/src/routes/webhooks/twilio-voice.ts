@@ -7,6 +7,7 @@ import { sendPushNotification } from '../../services/notifications';
 import { isWithinWorkingHours } from '../../utils/working-hours';
 import { TwilioVoiceWebhookBody } from '../../types';
 import { supabase } from '../../config/supabase';
+import { env } from '../../config/env';
 
 const router = Router();
 const VoiceResponse = Twilio.twiml.VoiceResponse;
@@ -271,6 +272,249 @@ router.post('/call-status', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('Error handling Twilio voice status callback:', err);
+  }
+
+  res.status(200).send();
+});
+
+/**
+ * POST /emergency-alert — TwiML served when contractor answers the emergency outbound call.
+ * Plays an alert tone, then a bilingual TTS message, with a Gather for Press 1 to call back.
+ */
+router.post('/emergency-alert', async (req: Request, res: Response) => {
+  const { leadId, contractorId, urgency } = req.query as Record<string, string>;
+  const twiml = new VoiceResponse();
+
+  try {
+    // Fetch contractor for locale and lead for issue details
+    const { data: contractor } = await supabase
+      .from('contractors')
+      .select('locale')
+      .eq('id', contractorId)
+      .single();
+
+    const { data: lead } = await supabase
+      .from('leads')
+      .select('caller_phone, issue_description, caller_name')
+      .eq('id', leadId)
+      .single();
+
+    const locale = contractor?.locale || 'fi';
+    const callerPhone = lead?.caller_phone || 'unknown';
+    const issue = lead?.issue_description || '';
+    const callerName = lead?.caller_name || '';
+    const callerDisplay = callerName || callerPhone;
+    const isEmergency = urgency === 'emergency';
+
+    // Alert tone: short pause then urgent beep pattern using Twilio's built-in TTS
+    twiml.pause({ length: 1 });
+    twiml.say({ language: 'en-US' }, 'Beep. Beep. Beep.');
+    twiml.pause({ length: 1 });
+
+    // Gather: Press 1 to call back
+    const gather = twiml.gather({
+      action: `/webhooks/twilio-voice/emergency-gather` +
+              `?leadId=${leadId}&contractorId=${contractorId}`,
+      method: 'POST',
+      numDigits: 1,
+      timeout: 10,
+    });
+
+    // Bilingual alert message based on contractor locale
+    if (locale === 'fi') {
+      const urgencyText = isEmergency ? 'hätätilanne' : 'kiireellinen';
+      gather.say(
+        { language: 'fi-FI' },
+        `Hälytys! ${urgencyText}. Soittaja: ${callerDisplay}. ` +
+        (issue ? `Ongelma: ${issue}. ` : '') +
+        `Paina 1 soittaaksesi takaisin nyt.`
+      );
+    } else if (locale === 'pt') {
+      const urgencyText = isEmergency ? 'emergência' : 'urgente';
+      gather.say(
+        { language: 'pt-PT' },
+        `Alerta! ${urgencyText}. Chamador: ${callerDisplay}. ` +
+        (issue ? `Problema: ${issue}. ` : '') +
+        `Pressione 1 para ligar de volta agora.`
+      );
+    } else {
+      const urgencyText = isEmergency ? 'emergency' : 'urgent';
+      gather.say(
+        { language: 'en-US' },
+        `Alert! ${urgencyText} lead. Caller: ${callerDisplay}. ` +
+        (issue ? `Issue: ${issue}. ` : '') +
+        `Press 1 to call them back now.`
+      );
+    }
+
+    // Fallback if no key pressed
+    if (locale === 'fi') {
+      twiml.say({ language: 'fi-FI' }, 'Ei vastausta. Voit soittaa takaisin myöhemmin. Hei hei.');
+    } else if (locale === 'pt') {
+      twiml.say({ language: 'pt-PT' }, 'Sem resposta. Pode ligar de volta mais tarde. Adeus.');
+    } else {
+      twiml.say({ language: 'en-US' }, 'No response. You can call back later. Goodbye.');
+    }
+    twiml.hangup();
+  } catch (err) {
+    console.error('Error serving emergency alert TwiML:', err);
+    twiml.say('An error occurred. Please try again later.');
+    twiml.hangup();
+  }
+
+  res.type('text/xml').send(twiml.toString());
+});
+
+/**
+ * POST /emergency-gather — Processes the contractor's keypress during the emergency call.
+ * Press 1 → connect to the lead's phone.
+ */
+router.post('/emergency-gather', async (req: Request, res: Response) => {
+  const { Digits } = req.body as Record<string, string>;
+  const { leadId, contractorId } = req.query as Record<string, string>;
+  const twiml = new VoiceResponse();
+
+  try {
+    if (Digits === '1') {
+      // Fetch lead phone number
+      const { data: lead } = await supabase
+        .from('leads')
+        .select('caller_phone')
+        .eq('id', leadId)
+        .single();
+
+      // Fetch contractor for locale and Twilio number
+      const { data: contractor } = await supabase
+        .from('contractors')
+        .select('locale, twilio_phone_number')
+        .eq('id', contractorId)
+        .single();
+
+      const locale = contractor?.locale || 'fi';
+
+      if (lead?.caller_phone) {
+        // Connect the contractor to the lead
+        if (locale === 'fi') {
+          twiml.say({ language: 'fi-FI' }, 'Yhdistämme sinut nyt soittajaan.');
+        } else if (locale === 'pt') {
+          twiml.say({ language: 'pt-PT' }, 'A ligar-lhe ao chamador agora.');
+        } else {
+          twiml.say({ language: 'en-US' }, 'Connecting you to the caller now.');
+        }
+
+        const dial = twiml.dial({
+          callerId: contractor?.twilio_phone_number || env.twilioPhoneNumber,
+          action: `/webhooks/twilio-voice/emergency-dial-status` +
+                  `?leadId=${leadId}&contractorId=${contractorId}`,
+          method: 'POST',
+          timeout: 30,
+        });
+        dial.number(lead.caller_phone);
+      } else {
+        twiml.say('Could not find the caller information.');
+        twiml.hangup();
+      }
+    } else {
+      // Any other key — thank and hang up
+      const { data: contractor } = await supabase
+        .from('contractors')
+        .select('locale')
+        .eq('id', contractorId)
+        .single();
+
+      const locale = contractor?.locale || 'fi';
+
+      if (locale === 'fi') {
+        twiml.say({ language: 'fi-FI' }, 'Kiitos. Voit soittaa takaisin myöhemmin. Hei hei.');
+      } else if (locale === 'pt') {
+        twiml.say({ language: 'pt-PT' }, 'Obrigado. Pode ligar de volta mais tarde. Adeus.');
+      } else {
+        twiml.say({ language: 'en-US' }, 'Thank you. You can call back later. Goodbye.');
+      }
+      twiml.hangup();
+    }
+  } catch (err) {
+    console.error('Error handling emergency gather:', err);
+    twiml.say('An error occurred.');
+    twiml.hangup();
+  }
+
+  res.type('text/xml').send(twiml.toString());
+});
+
+/**
+ * POST /emergency-dial-status — Callback after the contractor's dial to the lead completes.
+ */
+router.post('/emergency-dial-status', async (req: Request, res: Response) => {
+  const { DialCallStatus } = req.body as Record<string, string>;
+  const { leadId, contractorId } = req.query as Record<string, string>;
+  const twiml = new VoiceResponse();
+
+  try {
+    const { data: contractor } = await supabase
+      .from('contractors')
+      .select('locale')
+      .eq('id', contractorId)
+      .single();
+
+    const locale = contractor?.locale || 'fi';
+
+    if (DialCallStatus === 'completed') {
+      // Contractor successfully spoke with the lead
+      await supabase
+        .from('leads')
+        .update({ status: 'completed', updated_at: new Date().toISOString() })
+        .eq('id', leadId);
+
+      console.log(`[emergency-call] Lead ${leadId} marked completed — contractor called back successfully`);
+    } else {
+      // Lead didn't answer
+      console.log(`[emergency-call] Lead ${leadId} callback dial status: ${DialCallStatus}`);
+
+      if (locale === 'fi') {
+        twiml.say({ language: 'fi-FI' }, 'Soittaja ei vastannut. Voit yrittää uudelleen myöhemmin. Hei hei.');
+      } else if (locale === 'pt') {
+        twiml.say({ language: 'pt-PT' }, 'O chamador não atendeu. Pode tentar novamente mais tarde. Adeus.');
+      } else {
+        twiml.say({ language: 'en-US' }, 'The caller did not answer. You can try calling them back later. Goodbye.');
+      }
+    }
+  } catch (err) {
+    console.error('Error handling emergency dial status:', err);
+  }
+
+  twiml.hangup();
+  res.type('text/xml').send(twiml.toString());
+});
+
+/**
+ * POST /emergency-call-status — Status callback for the outbound emergency call itself.
+ * If the contractor didn't answer and this isn't already a retry, the scheduled_tasks
+ * entry (created by triggerEmergencyCall) will handle the retry.
+ */
+router.post('/emergency-call-status', async (req: Request, res: Response) => {
+  const { CallStatus } = req.body as Record<string, string>;
+  const { leadId, contractorId, isRetry } = req.query as Record<string, string>;
+
+  try {
+    if (['completed', 'in-progress'].includes(CallStatus)) {
+      // Contractor answered — cancel the retry task
+      await supabase
+        .from('scheduled_tasks')
+        .update({ executed: true })
+        .eq('lead_id', leadId)
+        .eq('task_type', 'emergency_retry')
+        .eq('executed', false);
+
+      console.log(`[emergency-call] Contractor ${contractorId} answered emergency call for lead ${leadId} — retry cancelled`);
+    } else {
+      console.log(
+        `[emergency-call] Emergency call to contractor ${contractorId} for lead ${leadId} ` +
+        `ended with status: ${CallStatus} (isRetry=${isRetry})`
+      );
+    }
+  } catch (err) {
+    console.error('Error handling emergency call status:', err);
   }
 
   res.status(200).send();

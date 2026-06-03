@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
  * Integration tests for cron jobs:
- * - Consent timeout → lead transitions to no_consent
- * - Satisfaction follow-up → SMS sent, response parsed
+ * - Consent timeout â†’ lead transitions to no_consent
+ * - Satisfaction follow-up â†’ SMS sent, response parsed
  */
 
 const {

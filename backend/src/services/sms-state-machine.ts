@@ -2,6 +2,7 @@ import { supabase } from '../config/supabase';
 import { Lead, LeadStatus, Contractor, Locale } from '../types';
 import { sendSms } from './twilio';
 import { sendPushNotification } from './notifications';
+import { triggerEmergencyCall } from './emergency-call';
 
 // --- SMS Templates (bilingual: Finnish + English) ---
 // Finnish translations should be reviewed by a native speaker before launch.
@@ -318,6 +319,13 @@ export async function handleInboundSms(
             `${lead.caller_phone}: ${lead.issue_description || 'Unknown issue'}`,
             { leadId: lead.id, priority: 'high' }
           );
+
+          // Trigger emergency outbound call to contractor's phone
+          // Re-fetch lead to get updated fields (issue_description was set in previous step)
+          const freshLead = await refreshLead(lead.id);
+          if (freshLead) {
+            await triggerEmergencyCall(freshLead, contractor);
+          }
         }
 
         // Advance to name collection (fix #22)

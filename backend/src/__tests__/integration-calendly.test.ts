@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
- * Integration test: Calendly booking webhook → lead status update → confirmation SMS
+ * Integration test: Calendly booking webhook â†’ lead status update â†’ confirmation SMS
  */
 
 const {
@@ -59,7 +59,7 @@ function mockChain(data: unknown = null, error: unknown = null) {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('Integration: Calendly Booking → Status Update → SMS', () => {
+describe('Integration: Calendly Booking â†’ Status Update â†’ SMS', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSendSms.mockResolvedValue('SM_booking_confirm');

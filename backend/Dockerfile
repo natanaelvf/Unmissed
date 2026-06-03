@@ -29,6 +29,9 @@ COPY --from=builder --chown=backend:nodejs /app/package.json /app/package-lock.j
 COPY --from=builder --chown=backend:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=backend:nodejs /app/dist ./dist
 
+# Copy static assets (IVR/voicemail audio files)
+COPY --chown=backend:nodejs public/ ./public/
+
 # Environment
 ENV NODE_ENV=production
 ENV PORT=3000

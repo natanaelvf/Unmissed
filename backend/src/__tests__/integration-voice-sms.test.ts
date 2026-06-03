@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
- * Integration test: Twilio voice webhook → lead creation → consent SMS
+ * Integration test: Twilio voice webhook â†’ lead creation â†’ consent SMS
  *
  * Tests the full flow from an incoming voice call through to the first SMS being sent,
  * exercising the voice webhook handler, deduplication service, and SMS state machine together.
@@ -97,7 +97,7 @@ function makeLead(overrides: Partial<Lead> = {}): Lead {
     satisfaction_score: null,
     satisfaction_feedback: null,
     notes: null,
-    called_during_after_hours: false,
+    called_during_after_hours: false,`n    emergency_call_placed: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
@@ -119,10 +119,10 @@ function mockChain(data: unknown = null, error: unknown = null) {
 }
 
 // ---------------------------------------------------------------------------
-// Integration: Voice Webhook → Lead → Consent SMS
+// Integration: Voice Webhook â†’ Lead â†’ Consent SMS
 // ---------------------------------------------------------------------------
 
-describe('Integration: Voice → Lead → Consent SMS', () => {
+describe('Integration: Voice â†’ Lead â†’ Consent SMS', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockSendSms.mockResolvedValue('SM_consent_sid');
@@ -134,7 +134,7 @@ describe('Integration: Voice → Lead → Consent SMS', () => {
     const callerPhone = '+358401234567';
     const newLead = makeLead({ caller_phone: callerPhone, status: LeadStatus.Missed });
 
-    // Mock: no existing lead found → create new
+    // Mock: no existing lead found â†’ create new
     const findChain = mockChain(null, { message: 'Not found' });
     const contractorChain = mockChain({ default_job_value: 250 });
     const insertChain = mockChain(newLead);
@@ -220,7 +220,7 @@ describe('Integration: Full SMS Sequence', () => {
     mockSendPushNotification.mockResolvedValue(undefined);
   });
 
-  it('should progress lead through consent → issue → urgency → name → booking', async () => {
+  it('should progress lead through consent â†’ issue â†’ urgency â†’ name â†’ booking', async () => {
     const contractor = makeContractor();
 
     // Track lead status progression
@@ -253,7 +253,7 @@ describe('Integration: Full SMS Sequence', () => {
       return chain;
     });
 
-    // Step 1: consent_sent → reply YES → qualifying_issue
+    // Step 1: consent_sent â†’ reply YES â†’ qualifying_issue
     let lead = makeLead({ status: LeadStatus.ConsentSent });
     mockSupabaseFrom.mockImplementation((table: string) => {
       const chain = mockChain(lead);
@@ -265,7 +265,7 @@ describe('Integration: Full SMS Sequence', () => {
     });
     await handleInboundSms(lead, 'YES', contractor);
 
-    // Step 2: qualifying_issue → reply with issue → qualifying_urgency
+    // Step 2: qualifying_issue â†’ reply with issue â†’ qualifying_urgency
     lead = makeLead({ status: LeadStatus.QualifyingIssue });
     mockSupabaseFrom.mockImplementation(() => {
       const chain = mockChain(lead);
@@ -277,7 +277,7 @@ describe('Integration: Full SMS Sequence', () => {
     });
     await handleInboundSms(lead, 'Leaking pipe under sink', contractor);
 
-    // Step 3: qualifying_urgency → reply "3" (high) → qualifying_name
+    // Step 3: qualifying_urgency â†’ reply "3" (high) â†’ qualifying_name
     lead = makeLead({ status: LeadStatus.QualifyingUrgency });
     mockSupabaseFrom.mockImplementation(() => {
       const chain = mockChain(lead);
@@ -289,7 +289,7 @@ describe('Integration: Full SMS Sequence', () => {
     });
     await handleInboundSms(lead, '3', contractor);
 
-    // Step 4: qualifying_name → reply with name → booking_sent
+    // Step 4: qualifying_name â†’ reply with name â†’ booking_sent
     lead = makeLead({ status: LeadStatus.QualifyingName });
     mockSupabaseFrom.mockImplementation(() => {
       const chain = mockChain(lead);

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { isWithinWorkingHours } from '../utils/working-hours';
 import { Contractor } from '../types';
 
@@ -52,7 +52,7 @@ describe('Working Hours', () => {
     vi.useRealTimers();
   });
 
-  describe('normal schedule (08:00–18:00)', () => {
+  describe('normal schedule (08:00â€“18:00)', () => {
     it('should return true during working hours on a working day', () => {
       // Wednesday 2024-01-10 at 12:00 Helsinki time (10:00 UTC)
       vi.setSystemTime(new Date('2024-01-10T10:00:00Z'));
@@ -124,7 +124,7 @@ describe('Working Hours', () => {
     });
   });
 
-  describe('overnight schedule (20:00–06:00)', () => {
+  describe('overnight schedule (20:00â€“06:00)', () => {
     it('should return true during late-night hours', () => {
       // Wednesday 2024-01-10 at 23:00 Helsinki time (21:00 UTC)
       vi.setSystemTime(new Date('2024-01-10T21:00:00Z'));

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
  * Tests for the push notification service:
@@ -31,7 +31,7 @@ vi.mock('firebase-admin', () => ({
 }));
 
 vi.mock('../config/env', () => ({
-  env: { firebaseServiceAccountPath: '' }, // No Firebase → disabled
+  env: { firebaseServiceAccountPath: '' }, // No Firebase â†’ disabled
 }));
 
 // Import after mocking

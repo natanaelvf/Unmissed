@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response } from 'express';
 import router from '../routes/webhooks/twilio-voice';
 import { lookupContractorByTwilioNumber } from '../services/twilio';
@@ -109,7 +109,7 @@ function makeLead(overrides: Partial<Lead> = {}): Lead {
     satisfaction_score: null,
     satisfaction_feedback: null,
     notes: null,
-    called_during_after_hours: false,
+    called_during_after_hours: false,`n    emergency_call_placed: false,
     locale: 'fi',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

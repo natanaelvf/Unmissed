@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock Supabase using vi.hoisted() to avoid hoisting issues
@@ -59,7 +59,7 @@ describe('Lead Deduplication', () => {
         caller_phone: callerPhone,
         call_count: 1,
         status: 'missed',
-        called_during_after_hours: false,
+        called_during_after_hours: false,`n    emergency_call_placed: false,
       };
       const insertChain = mockChain(newLead);
 
@@ -85,7 +85,7 @@ describe('Lead Deduplication', () => {
       const contractorChain = mockChain({ default_job_value: 200 });
       const insertChain = mockChain({
         id: 'lead-ah',
-        called_during_after_hours: true,
+        called_during_after_hours: true,`n    emergency_call_placed: false,
         call_count: 1,
         status: 'missed',
       });

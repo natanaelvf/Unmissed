@@ -22,6 +22,7 @@ import { runDataRetention } from './jobs/data-retention';
 import { runConsentTimeout } from './jobs/consent-timeout';
 import { runSmsReset } from './jobs/sms-reset';
 import { runIntegrityCheck } from './jobs/integrity-check';
+import { runEmergencyRetry } from './jobs/emergency-retry';
 
 const app = express();
 
@@ -88,6 +89,9 @@ cron.schedule('*/30 * * * *', () => {
 cron.schedule('*/5 * * * *', () => {
   runConsentTimeout().catch((err) =>
     console.error('[cron] Consent timeout error:', err)
+  );
+  runEmergencyRetry().catch((err) =>
+    console.error('[cron] Emergency retry error:', err)
   );
 });
 

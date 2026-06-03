@@ -27,7 +27,7 @@ export type NumberSetupType = 'forwarding' | 'new_number';
 export type Tier = 'starter' | 'growth' | 'pro';
 export type Locale = 'fi' | 'en' | 'pt';
 export type MessageDirection = 'inbound' | 'outbound';
-export type ScheduledTaskType = 'dnr_check' | 'satisfaction_followup' | 'reminder' | 'consent_timeout';
+export type ScheduledTaskType = 'dnr_check' | 'satisfaction_followup' | 'reminder' | 'consent_timeout' | 'emergency_retry';
 
 // --- Database row interfaces ---
 
@@ -81,6 +81,7 @@ export interface Lead {
   satisfaction_feedback: string | null;
   notes: string | null;
   called_during_after_hours: boolean;
+  emergency_call_placed: boolean;
   locale: Locale;
   created_at: string;
   updated_at: string;

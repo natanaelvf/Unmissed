@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 /**
- * Integration test: GDPR deletion → all data removed, audit log created
+ * Integration test: GDPR deletion â†’ all data removed, audit log created
  *
  * Tests the deletion flow that the Flutter app's ApiService.deleteLeadGdpr performs
  * via direct Supabase calls.

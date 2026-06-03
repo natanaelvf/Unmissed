@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // ---------------------------------------------------------------------------
 // Mock external dependencies using vi.hoisted() to avoid hoisting issues
@@ -50,7 +50,7 @@ function makeLead(overrides: Partial<Lead> = {}): Lead {
     satisfaction_score: null,
     satisfaction_feedback: null,
     notes: null,
-    called_during_after_hours: false,
+    called_during_after_hours: false,`n    emergency_call_placed: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     ...overrides,
@@ -61,7 +61,7 @@ function makeContractor(overrides: Partial<Contractor> = {}): Contractor {
   return {
     id: 'contractor-001',
     business_name: 'Test Plumbing Oy',
-    contact_name: 'Matti Meikäläinen',
+    contact_name: 'Matti MeikÃ¤lÃ¤inen',
     contact_email: 'matti@test.fi',
     contact_phone: '+358501234567',
     twilio_phone_number: '+358800123456',
@@ -137,7 +137,7 @@ describe('SMS State Machine', () => {
     vi.restoreAllMocks();
   });
 
-  // ─── Consent Phase ────────────────────────────────────
+  // â”€â”€â”€ Consent Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('consent_sent status', () => {
     it('should advance to qualifying_issue on "YES"', async () => {
@@ -161,7 +161,7 @@ describe('SMS State Machine', () => {
       expect(mockSendSms).toHaveBeenCalled();
     });
 
-    it('should accept "KYLLÄ" as consent (Finnish YES)', async () => {
+    it('should accept "KYLLÃ„" as consent (Finnish YES)', async () => {
       const lead = makeLead({ status: LeadStatus.ConsentSent });
       const contractor = makeContractor();
 
@@ -171,7 +171,7 @@ describe('SMS State Machine', () => {
         return mockChain();
       });
 
-      await handleInboundSms(lead, 'KYLLÄ', contractor);
+      await handleInboundSms(lead, 'KYLLÃ„', contractor);
 
       expect(mockSendSms).toHaveBeenCalled();
     });
@@ -240,7 +240,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Issue Collection Phase ───────────────────────────
+  // â”€â”€â”€ Issue Collection Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('qualifying_issue status', () => {
     it('should store issue description and advance to qualifying_urgency', async () => {
@@ -292,11 +292,11 @@ describe('SMS State Machine', () => {
 
       expect(mockSendSms).toHaveBeenCalled();
       const smsBody = mockSendSms.mock.calls[0][2] as string;
-      expect(smsBody).toContain('urgência');
+      expect(smsBody).toContain('urgÃªncia');
     });
   });
 
-  // ─── Consent Keywords (multilingual) ──────────────────
+  // â”€â”€â”€ Consent Keywords (multilingual) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('consent keywords', () => {
     it('should accept "SIM" as consent (Portuguese YES)', async () => {
@@ -316,7 +316,7 @@ describe('SMS State Machine', () => {
       expect(smsBody).toContain('descrever brevemente');
     });
 
-    it('should accept "NÃO" as opt-out (Portuguese NO)', async () => {
+    it('should accept "NÃƒO" as opt-out (Portuguese NO)', async () => {
       const lead = makeLead({ status: LeadStatus.ConsentSent });
       const contractor = makeContractor({ locale: 'pt' });
 
@@ -326,7 +326,7 @@ describe('SMS State Machine', () => {
         return mockChain();
       });
 
-      await handleInboundSms(lead, 'NÃO', contractor);
+      await handleInboundSms(lead, 'NÃƒO', contractor);
 
       expect(mockSendSms).toHaveBeenCalled();
       const smsBody = mockSendSms.mock.calls[0][2] as string;
@@ -334,7 +334,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Urgency Collection Phase ─────────────────────────
+  // â”€â”€â”€ Urgency Collection Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('qualifying_urgency status', () => {
     it('should parse urgency "1" as low and advance to qualifying_name', async () => {
@@ -373,7 +373,7 @@ describe('SMS State Machine', () => {
     it('should send emergency push for after-hours emergency leads', async () => {
       const lead = makeLead({
         status: LeadStatus.QualifyingUrgency,
-        called_during_after_hours: true,
+        called_during_after_hours: true,`n    emergency_call_placed: false,
         issue_description: 'Burst pipe flooding basement',
       });
       const contractor = makeContractor();
@@ -397,7 +397,7 @@ describe('SMS State Machine', () => {
     it('should NOT send emergency push for non-after-hours emergency', async () => {
       const lead = makeLead({
         status: LeadStatus.QualifyingUrgency,
-        called_during_after_hours: false,
+        called_during_after_hours: false,`n    emergency_call_placed: false,
       });
       const contractor = makeContractor();
 
@@ -447,7 +447,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Name Collection Phase ────────────────────────────
+  // â”€â”€â”€ Name Collection Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('qualifying_name status', () => {
     it('should store name and send booking link', async () => {
@@ -468,7 +468,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Booking Sent Phase ───────────────────────────────
+  // â”€â”€â”€ Booking Sent Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('booking_sent status', () => {
     it('should re-send booking link on any reply', async () => {
@@ -489,7 +489,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Satisfaction Follow-up Phase ─────────────────────
+  // â”€â”€â”€ Satisfaction Follow-up Phase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('followed_up status', () => {
     it('should parse score "5" and mark completed', async () => {
@@ -566,7 +566,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── SMS Cap ──────────────────────────────────────────
+  // â”€â”€â”€ SMS Cap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('SMS cap handling', () => {
     it('should handle SMS_CAP_REACHED gracefully', async () => {
@@ -588,7 +588,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Consent Initiation ───────────────────────────────
+  // â”€â”€â”€ Consent Initiation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('initiateConsentSms', () => {
     it('should send consent SMS and schedule timeout', async () => {
@@ -635,7 +635,7 @@ describe('SMS State Machine', () => {
     });
   });
 
-  // ─── Edge cases ───────────────────────────────────────
+  // â”€â”€â”€ Edge cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   describe('edge cases', () => {
     it('should handle lead not found during re-fetch', async () => {
