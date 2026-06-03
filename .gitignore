@@ -65,6 +65,11 @@ Thumbs.db
 *~
 
 # ========================
+# Database SQL (contains PII and project IDs)
+# ========================
+database/
+
+# ========================
 # Agent Skills and Private Files
 # ========================
 .agents/
