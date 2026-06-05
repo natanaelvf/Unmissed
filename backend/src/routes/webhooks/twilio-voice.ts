@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import Twilio from 'twilio';
+import * as Sentry from '@sentry/node';
 import { lookupContractorByTwilioNumber } from '../../services/twilio';
 import { findOrCreateLead } from '../../services/deduplication';
 import { initiateConsentSms } from '../../services/sms-state-machine';
 import { sendPushNotification } from '../../services/notifications';
+import { enrichLeadWithCallerName } from '../../services/caller-lookup';
 import { isWithinWorkingHours } from '../../utils/working-hours';
 import { TwilioVoiceWebhookBody } from '../../types';
 import { supabase } from '../../config/supabase';
@@ -79,6 +81,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.type('text/xml').send(twiml.toString());
   } catch (err) {
     console.error('Error handling voice webhook:', err);
+    Sentry.captureException(err, { tags: { webhook: 'twilio-voice', handler: 'incoming' } });
     twiml.say('An error occurred. Please try again later.');
     twiml.hangup();
     res.type('text/xml').send(twiml.toString());
@@ -260,6 +263,9 @@ router.post('/call-status', async (req: Request, res: Response) => {
             // initiateConsentSms updates status to 'consent_sent' internally
             await initiateConsentSms(lead, contractor);
 
+            // Non-blocking: attempt to resolve caller name via Twilio Lookup
+            enrichLeadWithCallerName(lead.id, From, contractor.id).catch(() => {});
+
             await sendPushNotification(
               contractor.id,
               lead.call_count === 1 ? 'Missed Call' : `Repeat Caller (${lead.call_count}x)`,
@@ -272,6 +278,7 @@ router.post('/call-status', async (req: Request, res: Response) => {
     }
   } catch (err) {
     console.error('Error handling Twilio voice status callback:', err);
+    Sentry.captureException(err, { tags: { webhook: 'twilio-voice', handler: 'call-status' } });
   }
 
   res.status(200).send();

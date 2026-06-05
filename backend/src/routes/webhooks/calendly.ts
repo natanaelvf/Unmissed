@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
+import * as Sentry from '@sentry/node';
 import { env } from '../../config/env';
 import { supabase } from '../../config/supabase';
 import { LeadStatus, Locale } from '../../types';
@@ -176,6 +177,7 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(200).json({ ok: true });
   } catch (err) {
     console.error('Error handling Calendly webhook:', err);
+    Sentry.captureException(err, { tags: { webhook: 'calendly' } });
     res.status(500).json({ error: 'Internal server error' });
   }
 });

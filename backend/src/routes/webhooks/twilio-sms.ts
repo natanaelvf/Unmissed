@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import Twilio from 'twilio';
+import * as Sentry from '@sentry/node';
 import { supabase } from '../../config/supabase';
 import { lookupContractorByTwilioNumber } from '../../services/twilio';
 import { handleInboundSms } from '../../services/sms-state-machine';
@@ -46,6 +47,10 @@ router.post('/', async (req: Request, res: Response) => {
     await handleInboundSms(lead as Lead, body.Body, contractor);
   } catch (err) {
     console.error('Error handling inbound SMS:', err);
+    Sentry.captureException(err, {
+      tags: { webhook: 'twilio-sms' },
+      extra: { from: body.From, to: body.To },
+    });
   }
 
   // Return empty TwiML (responses are sent asynchronously via the state machine)

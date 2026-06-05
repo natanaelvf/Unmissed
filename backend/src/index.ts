@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cron from 'node-cron';
+import * as Sentry from '@sentry/node';
 import { env } from './config/env';
 
 // --- Route imports ---
@@ -9,6 +10,9 @@ import twilioVoiceWebhook from './routes/webhooks/twilio-voice';
 import twilioSmsWebhook from './routes/webhooks/twilio-sms';
 import calendlyWebhook from './routes/webhooks/calendly';
 import deviceTokenRoute from './routes/api/device-token';
+import leadsRoute from './routes/api/leads';
+import statsRoute from './routes/api/stats';
+import contractorRoute from './routes/api/contractor';
 
 // --- Middleware imports ---
 import { twilioSignatureMiddleware } from './middleware/twilio-signature';
@@ -25,6 +29,22 @@ import { runIntegrityCheck } from './jobs/integrity-check';
 import { runEmergencyRetry } from './jobs/emergency-retry';
 
 const app = express();
+
+// --- Sentry error tracking ---
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: env.nodeEnv,
+    tracesSampleRate: env.nodeEnv === 'production' ? 0.2 : 1.0,
+    integrations: [
+      Sentry.httpIntegration(),
+      Sentry.expressIntegration(),
+    ],
+  });
+  console.log('[sentry] Error tracking initialized');
+} else {
+  console.warn('[sentry] SENTRY_DSN not set — error tracking is DISABLED');
+}
 
 // Trust Fly.io's reverse proxy so express-rate-limit reads the correct client IP
 // from X-Forwarded-For instead of throwing ERR_ERL_UNEXPECTED_X_FORWARDED_FOR.
@@ -58,13 +78,36 @@ app.use(express.urlencoded({ extended: true })); // Twilio sends form-encoded
 // --- Static files (for voicemails) ---
 app.use('/audio', express.static('public/audio'));
 
-// --- Health check ---
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+// --- Health check (used by BetterUptime / UptimeRobot) ---
+const startedAt = new Date().toISOString();
+app.get('/health', async (_req, res) => {
+  try {
+    // Verify Supabase connectivity
+    const { supabase } = await import('./config/supabase');
+    const { count, error } = await supabase
+      .from('contractors')
+      .select('*', { count: 'exact', head: true });
+
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      startedAt,
+      uptime: process.uptime(),
+      database: error ? 'error' : 'connected',
+      contractors: count ?? 0,
+      sentry: !!process.env.SENTRY_DSN,
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: 'degraded',
+      timestamp: new Date().toISOString(),
+      error: 'Health check failed',
+    });
+  }
 });
 
 // --- API routes (authenticated + rate limited) ---
-app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute);
+app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute, leadsRoute, statsRoute, contractorRoute);
 
 // --- Webhook routes (validated by signature + rate limited) ---
 // Fix #7: Apply Twilio signature validation to Twilio webhook routes
@@ -109,15 +152,21 @@ cron.schedule('0 0 1 * *', () => {
   );
 });
 
+// --- Sentry error handler (must be after all routes/middleware) ---
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 // --- Start server ---
 app.listen(env.port, () => {
   console.log(`🚀 Server running on port ${env.port}`);
   console.log(`   Health check: http://localhost:${env.port}/health`);
 
   // Run data integrity checks on startup (non-blocking)
-  runIntegrityCheck().catch((err) =>
-    console.error('[startup] Integrity check failed:', err)
-  );
+  runIntegrityCheck().catch((err) => {
+    console.error('[startup] Integrity check failed:', err);
+    Sentry.captureException(err);
+  });
 });
 
 export default app;
