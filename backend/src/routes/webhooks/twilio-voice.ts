@@ -10,6 +10,7 @@ import { isWithinWorkingHours } from '../../utils/working-hours';
 import { TwilioVoiceWebhookBody } from '../../types';
 import { supabase } from '../../config/supabase';
 import { env } from '../../config/env';
+import { recordLeadEvent } from '../../services/lead-events';
 
 const router = Router();
 const VoiceResponse = Twilio.twiml.VoiceResponse;
@@ -44,6 +45,15 @@ router.post('/', async (req: Request, res: Response) => {
 
     // 1. Create/Find lead immediately to start tracking the call
     const { lead, isNew } = await findOrCreateLead(contractor.id, body.From, afterHours);
+
+    // Record timeline event
+    recordLeadEvent(lead.id, 'call_received', {
+      from: body.From,
+      to: body.To,
+      callSid: body.CallSid,
+      afterHours,
+      isNew,
+    });
 
     // If it's Portuguese or contractor's locale is Portuguese, go straight to PT voicemail
     if (isPT) {
@@ -100,6 +110,9 @@ router.post('/status', async (req: Request, res: Response) => {
   try {
     if (['no-answer', 'busy', 'failed'].includes(DialCallStatus)) {
       // Contractor missed the call -> redirect caller to IVR menu
+      if (leadId) {
+        recordLeadEvent(leadId, 'call_missed', { dialStatus: DialCallStatus });
+      }
       twiml.redirect(`/webhooks/twilio-voice/ivr-menu?contractorId=${contractorId}&leadId=${leadId}&isNew=${isNew}`);
     } else if (DialCallStatus === 'completed') {
       // Call was successfully answered by contractor

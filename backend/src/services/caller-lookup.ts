@@ -1,8 +1,6 @@
-import Twilio from 'twilio';
 import { env } from '../config/env';
 import { supabase } from '../config/supabase';
-
-const client = Twilio(env.twilioAccountSid, env.twilioAuthToken);
+import { twilioClient as client } from '../config/twilio-client';
 
 /**
  * Look up a caller's name using Twilio Lookup V2 API.
@@ -51,9 +49,9 @@ export async function lookupCallerName(
       .eq('id', contractorId);
 
     // Extract caller name from the response
-    const callerName = result.callerName;
-    if (callerName && callerName.caller_name) {
-      const name = callerName.caller_name.trim();
+    const callerNameInfo = result.callerName;
+    if (callerNameInfo && callerNameInfo.callerName) {
+      const name = callerNameInfo.callerName.trim();
       if (name && name.length > 0 && name !== 'UNKNOWN' && name !== 'UNAVAILABLE') {
         console.log(`[caller-lookup] Found name for ${phone}: ${name}`);
         return name;

@@ -3,6 +3,7 @@ import { Lead, LeadStatus, Contractor, Locale } from '../types';
 import { sendSms } from './twilio';
 import { sendPushNotification } from './notifications';
 import { triggerEmergencyCall } from './emergency-call';
+import { recordLeadEvent } from './lead-events';
 
 // --- SMS Templates (bilingual: Finnish + English) ---
 // Finnish translations should be reviewed by a native speaker before launch.
@@ -268,10 +269,12 @@ export async function handleInboundSms(
           consent_given: true,
           consent_given_at: new Date().toISOString(),
         });
+        recordLeadEvent(lead.id, 'consent_given', {});
         const msg = T.askIssue(contractor.business_name);
         await sendAndRecord(lead, fromNumber, msg);
       } else if (noWords.includes(upper)) {
         await updateLeadStatus(lead.id, LeadStatus.NoConsent);
+        recordLeadEvent(lead.id, 'consent_declined', {});
         const msg = T.noConsent();
         await sendAndRecord(lead, fromNumber, msg);
       } else {
@@ -293,6 +296,7 @@ export async function handleInboundSms(
 
       // Advance to urgency step
       await updateLeadStatus(lead.id, LeadStatus.QualifyingUrgency);
+      recordLeadEvent(lead.id, 'issue_provided', { issue: body });
 
       // Ask urgency
       const msg = T.askUrgency();
@@ -330,6 +334,7 @@ export async function handleInboundSms(
 
         // Advance to name collection (fix #22)
         await updateLeadStatus(lead.id, LeadStatus.QualifyingName);
+        recordLeadEvent(lead.id, 'urgency_set', { urgency });
 
         const msg = T.askName();
         await sendAndRecord(lead, fromNumber, msg);
@@ -353,6 +358,8 @@ export async function handleInboundSms(
       const msg = T.bookingLink(contractor.business_name, contractor.calendly_url, lead.urgency);
       await sendAndRecord(lead, fromNumber, msg);
       await updateLeadStatus(lead.id, LeadStatus.BookingSent);
+      recordLeadEvent(lead.id, 'name_identified', { name: body });
+      recordLeadEvent(lead.id, 'booking_link_sent', { calendlyUrl: contractor.calendly_url });
       break;
     }
 
@@ -423,6 +430,7 @@ export async function initiateConsentSms(
 
   if (sent) {
     await updateLeadStatus(lead.id, LeadStatus.ConsentSent);
+    recordLeadEvent(lead.id, 'consent_sms_sent', { businessName: contractor.business_name });
 
     // Schedule consent timeout: if no reply in 30 minutes, mark as no_consent
     const timeoutAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();

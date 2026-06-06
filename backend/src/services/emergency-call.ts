@@ -1,10 +1,8 @@
-import Twilio from 'twilio';
 import { env } from '../config/env';
 import { supabase } from '../config/supabase';
+import { twilioClient } from '../config/twilio-client';
 import { Lead, Contractor } from '../types';
 import { isWithinWorkingHours } from '../utils/working-hours';
-
-const twilioClient = Twilio(env.twilioAccountSid, env.twilioAuthToken);
 
 /**
  * Trigger an emergency outbound call to the contractor's phone.

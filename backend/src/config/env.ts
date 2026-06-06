@@ -38,6 +38,17 @@ export const env = {
   supabaseAnonKey: process.env.SUPABASE_ANON_KEY || '',
   twilioAccountSid: required('TWILIO_ACCOUNT_SID'),
   twilioAuthToken: required('TWILIO_AUTH_TOKEN'),
+  // Restricted API key — used for all Twilio API calls (least-privilege)
+  twilioApiKeySid: optional(
+    'TWILIO_API_KEY_SID',
+    '',
+    'TWILIO_API_KEY_SID not set — falling back to Auth Token for API calls (less secure)'
+  ),
+  twilioApiKeySecret: optional(
+    'TWILIO_API_KEY_SECRET',
+    '',
+    'TWILIO_API_KEY_SECRET not set — falling back to Auth Token for API calls (less secure)'
+  ),
   twilioPhoneNumber: required('TWILIO_PHONE_NUMBER'),
   // Optional: Calendly webhook signature verification is disabled if not set
   calendlyWebhookSecret: optional(

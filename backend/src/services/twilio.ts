@@ -1,9 +1,7 @@
-import Twilio from 'twilio';
 import { env } from '../config/env';
 import { supabase } from '../config/supabase';
+import { twilioClient } from '../config/twilio-client';
 import { Contractor } from '../types';
-
-const twilioClient = Twilio(env.twilioAccountSid, env.twilioAuthToken);
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY_MS = 500;
