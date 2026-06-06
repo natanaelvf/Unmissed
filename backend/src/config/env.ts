@@ -65,4 +65,9 @@ export const env = {
   ),
   googleWebClientId: process.env.GOOGLE_WEB_CLIENT_ID || '',
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+  betterstackApiToken: optional(
+    'BETTERSTACK_API_TOKEN',
+    '',
+    'BETTERSTACK_API_TOKEN not set — uptime monitor API integration disabled'
+  ),
 } as const;
