@@ -105,6 +105,7 @@ class ApiService {
   }
 
   /// Save onboarding data to the contractor row.
+  /// Uses upsert so it works for both new users (INSERT) and existing (UPDATE).
   Future<Contractor> saveOnboarding({
     required String businessName,
     required String contactName,
@@ -121,22 +122,36 @@ class ApiService {
     required int urgencyThresholdNormalMin,
     required double defaultJobValue,
   }) async {
-    return updateContractorSettings({
-      'business_name': businessName,
-      'contact_name': contactName,
-      'contact_email': contactEmail,
-      'contact_phone': contactPhone,
-      'twilio_phone_number': twilioPhoneNumber,
-      'number_setup_type': numberSetupType,
-      'trade_type': tradeType,
-      'calendly_url': calendlyUrl,
-      'working_days': workingDays,
-      'working_hours_start': workingHoursStart,
-      'working_hours_end': workingHoursEnd,
-      'urgency_threshold_urgent_min': urgencyThresholdUrgentMin,
-      'urgency_threshold_normal_min': urgencyThresholdNormalMin,
-      'default_job_value': defaultJobValue,
-    });
+    final id = _contractorId;
+    if (id == null) throw Exception('Not authenticated');
+
+    final now = DateTime.now().toUtc().toIso8601String();
+
+    final response = await _client
+        .from('contractors')
+        .upsert({
+          'id': id,
+          'business_name': businessName,
+          'contact_name': contactName,
+          'contact_email': contactEmail,
+          'contact_phone': contactPhone,
+          'twilio_phone_number': twilioPhoneNumber,
+          'number_setup_type': numberSetupType,
+          'trade_type': tradeType,
+          'calendly_url': calendlyUrl,
+          'working_days': workingDays,
+          'working_hours_start': workingHoursStart,
+          'working_hours_end': workingHoursEnd,
+          'urgency_threshold_urgent_min': urgencyThresholdUrgentMin,
+          'urgency_threshold_normal_min': urgencyThresholdNormalMin,
+          'default_job_value': defaultJobValue,
+          'onboarding_complete': true,
+          'updated_at': now,
+        }, onConflict: 'id')
+        .select()
+        .single();
+
+    return Contractor.fromJson(response);
   }
 
   // ── Leads ────────────────────────────────────────────
