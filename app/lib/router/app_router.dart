@@ -52,6 +52,9 @@ class _RouterRefreshNotifier extends ChangeNotifier {
     }
   }
 
+  /// Force a router re-evaluation (e.g. when contractor data loads).
+  void triggerRefresh() => notifyListeners();
+
   @override
   void dispose() {
     _authSub.cancel();
@@ -65,6 +68,12 @@ final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
   // Listen to onboarding completion changes (derived from contractor data).
   ref.listen(isOnboardingCompleteProvider, (_, isComplete) {
     notifier.updateOnboarding(isComplete);
+  });
+
+  // Also trigger a refresh when contractor data finishes loading for the
+  // first time — this unblocks the redirect that was waiting for data.
+  ref.listen(isContractorLoadedProvider, (prev, next) {
+    if (prev != next && next) notifier.triggerRefresh();
   });
 
   ref.onDispose(() => notifier.dispose());
@@ -90,16 +99,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Check Supabase session directly — the source of truth.
       final isLoggedIn = supabase.auth.currentSession != null;
 
-      // Read onboarding state from the contractor provider.
+      // Read onboarding + loading state from providers.
       final container = ProviderScope.containerOf(context);
       final hasCompletedOnboarding =
           container.read(isOnboardingCompleteProvider);
+      final isContractorLoaded =
+          container.read(isContractorLoadedProvider);
 
       final isLoginRoute = state.matchedLocation == '/login';
       final isOnboardingRoute = state.matchedLocation == '/onboarding';
 
       // Not logged in → force login
       if (!isLoggedIn && !isLoginRoute) return '/login';
+
+      // Logged in but contractor data hasn't loaded yet → stay on login
+      // (the login screen shows a loading indicator while session restores).
+      // This prevents the onboarding flash.
+      if (isLoggedIn && !isContractorLoaded && isLoginRoute) return null;
 
       // Logged in but on login page → check onboarding
       if (isLoggedIn && isLoginRoute) {

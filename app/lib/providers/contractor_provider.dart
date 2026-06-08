@@ -113,3 +113,12 @@ final isOnboardingCompleteProvider = Provider<bool>((ref) {
   );
 });
 
+/// Whether the contractor data has been loaded at least once.
+/// Used by the router to avoid redirecting to /onboarding before
+/// we know the contractor's actual onboarding status.
+final isContractorLoadedProvider = Provider<bool>((ref) {
+  final contractorAsync = ref.watch(contractorProvider);
+  return contractorAsync.hasValue || contractorAsync.hasError;
+});
+
+

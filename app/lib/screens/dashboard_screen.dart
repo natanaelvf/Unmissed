@@ -191,7 +191,7 @@ class DashboardScreen extends ConsumerWidget {
                   crossAxisCount: 2,
                   mainAxisSpacing: 7,
                   crossAxisSpacing: 7,
-                  childAspectRatio: 1.35,
+                  childAspectRatio: 1.15,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [

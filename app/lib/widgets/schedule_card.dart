@@ -31,7 +31,7 @@ class ScheduleCard extends StatelessWidget {
           children: [
             // Time column
             Container(
-              width: 52,
+              width: 60,
               padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
               decoration: BoxDecoration(
                 color: colors.accentPrimary.withValues(alpha: 0.1),
@@ -46,6 +46,8 @@ class ScheduleCard extends StatelessWidget {
                     color: colors.accentPrimary,
                     fontFeatures: const [FontFeature.tabularFigures()],
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.clip,
                 ),
               ),
             ),
