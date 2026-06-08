@@ -146,7 +146,8 @@ class _AddLeadSheetState extends State<AddLeadSheet> {
                       onTap: () => setState(() => _urgency = u),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 8, horizontal: 4),
                         decoration: BoxDecoration(
                           color: isActive
                               ? color.withValues(alpha: 0.15)
@@ -158,14 +159,18 @@ class _AddLeadSheetState extends State<AddLeadSheet> {
                           ),
                         ),
                         child: Center(
-                          child: Text(
-                            u[0].toUpperCase() + u.substring(1),
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: isActive
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              color: isActive ? color : colors.textTertiary,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              u[0].toUpperCase() + u.substring(1),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: isActive
+                                    ? FontWeight.w700
+                                    : FontWeight.w500,
+                                color: isActive ? color : colors.textTertiary,
+                              ),
+                              maxLines: 1,
                             ),
                           ),
                         ),

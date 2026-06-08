@@ -174,10 +174,13 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     StatCard(
                       label: l10n.dashboardAvgResponseTime,
-                      targetValue: 12,
+                      targetValue: stats.avgResponseTimeMinutes ?? 0,
                       suffix: ' min',
                       emoji: '⚡',
                       accentColor: colors.accentDanger,
+                      overrideText: stats.avgResponseTimeMinutes == null
+                          ? 'N/A'
+                          : null,
                     ),
                   ],
                 ),

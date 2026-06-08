@@ -13,6 +13,10 @@ class StatCard extends StatefulWidget {
   final String emoji;
   final Color accentColor;
 
+  /// When set, displays this text instead of the animated number.
+  /// Useful for "N/A" or "—" when no real data is available.
+  final String? overrideText;
+
   const StatCard({
     super.key,
     required this.label,
@@ -23,6 +27,7 @@ class StatCard extends StatefulWidget {
     this.trendUp = true,
     this.emoji = '📊',
     required this.accentColor,
+    this.overrideText,
   });
 
   @override
@@ -95,25 +100,39 @@ class _StatCardState extends State<StatCard>
           ),
           const SizedBox(height: 8),
 
-          // Animated value
-          AnimatedBuilder(
-            animation: _animation,
-            builder: (context, child) {
-              final current =
-                  (widget.targetValue * _animation.value).round();
-              return FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '${widget.prefix}${_formatNumber(current)}${widget.suffix}',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    fontSize: 28,
-                  ),
-                  maxLines: 1,
+          // Value (static override or animated)
+          if (widget.overrideText != null)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                widget.overrideText!,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  fontSize: 28,
+                  color: colors.textTertiary,
                 ),
-              );
-            },
-          ),
+                maxLines: 1,
+              ),
+            )
+          else
+            AnimatedBuilder(
+              animation: _animation,
+              builder: (context, child) {
+                final current =
+                    (widget.targetValue * _animation.value).round();
+                return FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    '${widget.prefix}${_formatNumber(current)}${widget.suffix}',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontSize: 28,
+                    ),
+                    maxLines: 1,
+                  ),
+                );
+              },
+            ),
           const Spacer(),
 
           // Trend

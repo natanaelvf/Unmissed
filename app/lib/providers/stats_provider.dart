@@ -12,13 +12,15 @@ class DashboardStats {
   final double recoveredRevenue;
   final int leadsRecovered;
   final int recoveryRate;
-  final String avgResponseTime;
+
+  /// Null when no real message timestamps exist to compute from.
+  final double? avgResponseTimeMinutes;
 
   const DashboardStats({
     required this.recoveredRevenue,
     required this.leadsRecovered,
     required this.recoveryRate,
-    required this.avgResponseTime,
+    this.avgResponseTimeMinutes,
   });
 }
 
@@ -44,11 +46,14 @@ DashboardStats _computeStats(List<Lead> leads, double defaultJobValue) {
       ? ((recoveredCount / totalRecoverable) * 100).round()
       : 0;
 
+  // TODO: compute avgResponseTimeMinutes from real message timestamps
+  // once we track first-missed → first-contractor-response deltas.
+
   return DashboardStats(
     recoveredRevenue: recoveredRevenue,
     leadsRecovered: recoveredCount,
     recoveryRate: recoveryRate,
-    avgResponseTime: '—', // TODO: compute from real message timestamps
+    avgResponseTimeMinutes: null,
   );
 }
 
