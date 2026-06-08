@@ -235,6 +235,50 @@ class LeadsNotifier extends AsyncNotifier<List<Lead>> {
     state = await AsyncValue.guard(() => _api.fetchAllLeads());
   }
 
+  /// Update contractor notes for a lead.
+  Future<void> updateNotes(String leadId, String notes) async {
+    try {
+      final updatedLead = await _api.updateLead(
+        leadId,
+        {'notes': notes},
+      );
+
+      final currentLeads = state.valueOrNull ?? [];
+      state = AsyncData(currentLeads.map((l) {
+        return l.id == leadId ? updatedLead : l;
+      }).toList());
+    } catch (e) {
+      debugPrint('Failed to update notes: $e');
+      rethrow;
+    }
+  }
+
+  /// Update the contractor's 1-5 star rating for a lead.
+  Future<void> updateRating(String leadId, int rating) async {
+    try {
+      final updatedLead = await _api.updateLead(
+        leadId,
+        {'satisfaction_score': rating},
+      );
+
+      final currentLeads = state.valueOrNull ?? [];
+      state = AsyncData(currentLeads.map((l) {
+        return l.id == leadId ? updatedLead : l;
+      }).toList());
+
+      // Push activity event.
+      ref.read(activityNotifierProvider).addEvent(ActivityEvent(
+        type: ActivityType.satisfactionReceived,
+        description: 'Lead rated: ${updatedLead.displayName} — ${'★' * rating}${'☆' * (5 - rating)}',
+        timestamp: DateTime.now(),
+        leadId: leadId,
+      ));
+    } catch (e) {
+      debugPrint('Failed to update rating: $e');
+      rethrow;
+    }
+  }
+
   /// GDPR delete a lead.
   Future<void> deleteLeadGdpr(String leadId) async {
     try {

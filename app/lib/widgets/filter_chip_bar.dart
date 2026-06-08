@@ -36,7 +36,8 @@ class FilterChipBar extends StatelessWidget {
             onTap: () => onSelected(key),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 150),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               decoration: BoxDecoration(
                 color: isActive
                     ? colors.accentPrimaryMuted
@@ -50,6 +51,7 @@ class FilterChipBar extends StatelessWidget {
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     label,

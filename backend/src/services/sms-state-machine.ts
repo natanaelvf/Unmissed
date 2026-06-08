@@ -195,9 +195,25 @@ async function sendAndRecord(
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error(`[sms] Failed to send SMS to ${lead.caller_phone}: ${errorMsg}`);
 
-    // If SMS cap reached, don't record anything — just log
+    // If SMS cap reached, notify the contractor and don't record the message
     if (errorMsg === 'SMS_CAP_REACHED') {
-      console.warn(`[sms] SMS cap reached, skipping message for lead ${lead.id}`);
+      console.warn(`[sms] SMS cap reached, blocking message for lead ${lead.id}`);
+
+      // Look up contractor ID to send push notification
+      const { data: contractor } = await supabase
+        .from('contractors')
+        .select('id')
+        .eq('twilio_phone_number', fromNumber)
+        .single();
+
+      if (contractor) {
+        await sendPushNotification(
+          contractor.id,
+          '⚠️ Monthly SMS Limit Reached',
+          `Your SMS cap has been reached. Messages to ${lead.caller_phone} are blocked until next month.`,
+          { leadId: lead.id }
+        );
+      }
     }
 
     return false;

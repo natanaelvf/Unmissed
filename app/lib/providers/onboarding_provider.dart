@@ -10,20 +10,18 @@ class OnboardingNotifier extends ChangeNotifier {
   bool _isSaving = false;
   String? _error;
 
-  // Step 1: Business Info
+  // Step 1: About You & Your Business (merged)
   String businessName = '';
   String? tradeType;
-
-  // Step 2: Contact Details
   String contactName = '';
   String contactEmail = '';
   String contactPhone = '';
 
-  // Step 3: Phone Setup
+  // Step 2: Phone Setup
   String phoneNumber = '';
   String numberSetupType = 'forwarding'; // 'forwarding' | 'new_number'
 
-  // Step 4: Schedule & Preferences
+  // Step 3: Schedule & Preferences
   List<int> workingDays = [1, 2, 3, 4, 5];
   String workingHoursStart = '08:00';
   String workingHoursEnd = '18:00';
@@ -35,7 +33,7 @@ class OnboardingNotifier extends ChangeNotifier {
   int get currentStep => _currentStep;
   bool get isSaving => _isSaving;
   String? get error => _error;
-  int get totalSteps => 4;
+  int get totalSteps => 3;
 
   /// Whether onboarding is complete is now derived from the contractor row.
   /// This getter is kept for backward compatibility with the router,
@@ -46,17 +44,17 @@ class OnboardingNotifier extends ChangeNotifier {
   /// Whether the current step has valid data to proceed.
   bool get canAdvance {
     switch (_currentStep) {
-      case 0:
-        return businessName.trim().isNotEmpty && tradeType != null;
-      case 1:
-        return contactName.trim().isNotEmpty &&
+      case 0: // About You & Your Business
+        return businessName.trim().isNotEmpty &&
+            tradeType != null &&
+            contactName.trim().isNotEmpty &&
             contactEmail.trim().isNotEmpty &&
             _isValidEmail(contactEmail.trim()) &&
             contactPhone.trim().isNotEmpty;
-      case 2:
+      case 1: // Phone Setup
         return phoneNumber.trim().isNotEmpty;
-      case 3:
-        return true; // Preferences have sensible defaults.
+      case 2: // Preferences
+        return true; // Sensible defaults.
       default:
         return false;
     }
@@ -66,17 +64,15 @@ class OnboardingNotifier extends ChangeNotifier {
   /// or null if validation passes.
   String? get currentStepError {
     switch (_currentStep) {
-      case 0:
+      case 0: // About You & Your Business
         if (businessName.trim().isEmpty) return 'Please enter your business name.';
         if (tradeType == null) return 'Please select your trade.';
-        return null;
-      case 1:
         if (contactName.trim().isEmpty) return 'Please enter your full name.';
         if (contactEmail.trim().isEmpty) return 'Please enter your email address.';
         if (!_isValidEmail(contactEmail.trim())) return 'Please enter a valid email address.';
         if (contactPhone.trim().isEmpty) return 'Please enter your phone number.';
         return null;
-      case 2:
+      case 1: // Phone Setup
         if (phoneNumber.trim().isEmpty) return 'Please enter your business phone number.';
         return null;
       default:

@@ -72,7 +72,7 @@ class _AddLeadSheetState extends State<AddLeadSheet> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
             // Title
             Text(

@@ -48,7 +48,7 @@ class DashboardScreen extends ConsumerWidget {
         slivers: [
           // ── Greeting App Bar ────────────────────────
           SliverAppBar(
-            expandedHeight: 110,
+            expandedHeight: 120,
             floating: true,
             snap: true,
             backgroundColor: colors.bgSurface,
@@ -56,11 +56,36 @@ class DashboardScreen extends ConsumerWidget {
             flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
+                      // Icon row: app logo + notification bell
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: colors.accentPrimaryMuted,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Icon(
+                              Icons.phone_missed_rounded,
+                              color: colors.accentPrimary,
+                              size: 15,
+                            ),
+                          ),
+                          Icon(
+                            Icons.notifications_none_rounded,
+                            color: colors.textTertiary,
+                            size: 22,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         alignment: Alignment.centerLeft,
@@ -71,9 +96,19 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        _dateString(now),
-                        style: Theme.of(context).textTheme.bodySmall,
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 12,
+                            color: colors.textTertiary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _dateString(now),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -83,8 +118,16 @@ class DashboardScreen extends ConsumerWidget {
             ),
           ),
 
+          // ── Margin under AppBar (matching bg color) ──
+          SliverToBoxAdapter(
+            child: Container(
+              height: 8,
+              color: colors.bgBase,
+            ),
+          ),
+
           SliverPadding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 // ── Urgent Attention ───────────────────
@@ -158,6 +201,10 @@ class DashboardScreen extends ConsumerWidget {
                       prefix: '€',
                       emoji: '💰',
                       accentColor: colors.accentSuccess,
+                      trend: stats.potentialRevenue > 0
+                          ? 'of €${stats.potentialRevenue.toInt()} potential'
+                          : '',
+                      trendUp: true,
                     ),
                     StatCard(
                       label: l10n.dashboardLeadsRecovered,

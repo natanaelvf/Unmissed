@@ -13,6 +13,9 @@ class DashboardStats {
   final int leadsRecovered;
   final int recoveryRate;
 
+  /// Total estimated value across all recoverable leads (potential loss).
+  final double potentialRevenue;
+
   /// Null when no real message timestamps exist to compute from.
   final double? avgResponseTimeMinutes;
 
@@ -20,6 +23,7 @@ class DashboardStats {
     required this.recoveredRevenue,
     required this.leadsRecovered,
     required this.recoveryRate,
+    required this.potentialRevenue,
     this.avgResponseTimeMinutes,
   });
 }
@@ -42,6 +46,12 @@ DashboardStats _computeStats(List<Lead> leads, double defaultJobValue) {
     0,
     (sum, l) => sum + (l.estimatedValue ?? defaultJobValue),
   );
+
+  // Potential revenue: all recoverable leads' estimated value.
+  final potentialRevenue = leads
+      .where((l) => l.status != LeadStatus.noConsent)
+      .fold<double>(0, (sum, l) => sum + (l.estimatedValue ?? defaultJobValue));
+
   final recoveryRate = totalRecoverable > 0
       ? ((recoveredCount / totalRecoverable) * 100).round()
       : 0;
@@ -53,6 +63,7 @@ DashboardStats _computeStats(List<Lead> leads, double defaultJobValue) {
     recoveredRevenue: recoveredRevenue,
     leadsRecovered: recoveredCount,
     recoveryRate: recoveryRate,
+    potentialRevenue: potentialRevenue,
     avgResponseTimeMinutes: null,
   );
 }

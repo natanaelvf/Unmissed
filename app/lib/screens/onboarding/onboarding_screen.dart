@@ -6,11 +6,10 @@ import '../../providers/contractor_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/onboarding_stepper.dart';
 import 'step_business_info.dart';
-import 'step_contact_details.dart';
 import 'step_phone_setup.dart';
 import 'step_schedule_preferences.dart';
 
-/// Onboarding wizard — 4-step animated flow.
+/// Onboarding wizard — 3-step animated flow.
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -240,10 +239,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                   // Step indicator
                   OnboardingStepper(
                     currentStep: currentStep,
-                    totalSteps: 4,
+                    totalSteps: 3,
                     stepLabels: const [
-                      'Business Info',
-                      'Contact Details',
+                      'About You',
                       'Phone Setup',
                       'Preferences',
                     ],
@@ -262,7 +260,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                 },
                 children: const [
                   StepBusinessInfo(),
-                  StepContactDetails(),
                   StepPhoneSetup(),
                   StepSchedulePreferences(),
                 ],
@@ -307,7 +304,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                       onPressed: onboarding.isSaving
                           ? null
                           : () {
-                              if (currentStep < 3) {
+                              if (currentStep < 2) {
                                 _handleNext();
                               } else {
                                 _handleComplete();
@@ -322,7 +319,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                               ),
                             )
                           : Icon(
-                              currentStep < 3
+                              currentStep < 2
                                   ? Icons.arrow_forward_rounded
                                   : Icons.check_rounded,
                               size: 18,
@@ -330,7 +327,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen>
                       label: Text(
                         onboarding.isSaving
                             ? 'Saving...'
-                            : (currentStep < 3 ? 'Continue' : 'Complete Setup'),
+                            : (currentStep < 2 ? 'Continue' : 'Complete Setup'),
                       ),
                     ),
                   ),

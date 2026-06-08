@@ -125,6 +125,14 @@ class LeadDetailScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _CostsCard(lead: lead, leadId: leadId),
 
+          // Lead Rating — interactive 1-5 stars
+          const SizedBox(height: 12),
+          _RatingCard(lead: lead, leadId: leadId),
+
+          // Contractor Notes
+          const SizedBox(height: 12),
+          _NotesCard(lead: lead, leadId: leadId),
+
           // Satisfaction feedback
           if (lead.satisfactionFeedback != null) ...[
             const SizedBox(height: 12),
@@ -615,6 +623,274 @@ class _CostsCard extends ConsumerWidget {
             },
             child: const Text('Add'),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Interactive star rating card — contractor rates the lead 1-5 stars.
+class _RatingCard extends ConsumerWidget {
+  final Lead lead;
+  final String leadId;
+
+  const _RatingCard({required this.lead, required this.leadId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final currentRating = lead.satisfactionScore ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.bgSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Lead Quality',
+              style: Theme.of(context).textTheme.headlineMedium),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              ...List.generate(5, (index) {
+                final starIndex = index + 1;
+                final isFilled = starIndex <= currentRating;
+                return GestureDetector(
+                  onTap: () async {
+                    try {
+                      await ref
+                          .read(leadsProvider.notifier)
+                          .updateRating(leadId, starIndex);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Failed to save rating: $e')),
+                        );
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: Icon(
+                        isFilled
+                            ? Icons.star_rounded
+                            : Icons.star_outline_rounded,
+                        key: ValueKey('$starIndex-$isFilled'),
+                        size: 32,
+                        color: isFilled
+                            ? colors.accentPrimary
+                            : colors.textTertiary,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              const Spacer(),
+              if (currentRating > 0)
+                Text(
+                  '$currentRating/5',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: colors.accentPrimary,
+                  ),
+                ),
+            ],
+          ),
+          if (currentRating == 0)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Tap to rate this lead',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colors.textTertiary,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Contractor notes card — editable text area for free-form notes.
+class _NotesCard extends ConsumerStatefulWidget {
+  final Lead lead;
+  final String leadId;
+
+  const _NotesCard({required this.lead, required this.leadId});
+
+  @override
+  ConsumerState<_NotesCard> createState() => _NotesCardState();
+}
+
+class _NotesCardState extends ConsumerState<_NotesCard> {
+  late TextEditingController _controller;
+  bool _isEditing = false;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.lead.notes ?? '');
+  }
+
+  @override
+  void didUpdateWidget(_NotesCard old) {
+    super.didUpdateWidget(old);
+    if (old.lead.notes != widget.lead.notes && !_isEditing) {
+      _controller.text = widget.lead.notes ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    setState(() => _isSaving = true);
+    try {
+      await ref
+          .read(leadsProvider.notifier)
+          .updateNotes(widget.leadId, _controller.text.trim());
+      if (mounted) {
+        setState(() {
+          _isEditing = false;
+          _isSaving = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Notes saved')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save notes: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final hasNotes = (widget.lead.notes ?? '').isNotEmpty;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.bgSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Notes',
+                  style: Theme.of(context).textTheme.headlineMedium),
+              if (!_isEditing)
+                GestureDetector(
+                  onTap: () => setState(() => _isEditing = true),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colors.accentPrimaryMuted,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          hasNotes ? Icons.edit_rounded : Icons.add_rounded,
+                          size: 14,
+                          color: colors.accentPrimary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          hasNotes ? 'Edit' : 'Add',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: colors.accentPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          if (_isEditing) ...[
+            TextField(
+              controller: _controller,
+              maxLines: 4,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                hintText: 'Add notes about this lead...',
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: _isSaving
+                      ? null
+                      : () {
+                          _controller.text = widget.lead.notes ?? '';
+                          setState(() => _isEditing = false);
+                        },
+                  child: Text('Cancel',
+                      style: TextStyle(color: colors.textSecondary)),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _isSaving ? null : _save,
+                  child: _isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child:
+                              CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Save'),
+                ),
+              ],
+            ),
+          ] else if (hasNotes)
+            Text(
+              widget.lead.notes!,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colors.textSecondary,
+                  ),
+            )
+          else
+            Text(
+              'No notes yet',
+              style: TextStyle(
+                fontSize: 13,
+                color: colors.textTertiary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
         ],
       ),
     );
