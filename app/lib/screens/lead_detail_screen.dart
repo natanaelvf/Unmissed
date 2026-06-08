@@ -260,7 +260,7 @@ class _InfoCard extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    lead.estimatedValue != null ? '€${lead.estimatedValue!.toInt()}' : '—',
+                    lead.estimatedValue != null ? '${lead.estimatedValue!.toInt()} €' : '—',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: colors.accentSuccess,
                           fontWeight: FontWeight.w600,
@@ -323,7 +323,7 @@ class _InfoCard extends ConsumerWidget {
           ],
           autofocus: true,
           decoration: InputDecoration(
-            prefixText: '€ ',
+            suffixText: ' €',
             hintText: '0',
             filled: true,
             fillColor: colors.bgElevated,
@@ -466,7 +466,7 @@ class _CostsCard extends ConsumerWidget {
                         ),
                       ),
                       Text(
-                        '€${cost.amount.toStringAsFixed(cost.amount == cost.amount.roundToDouble() ? 0 : 2)}',
+                        '${cost.amount.toStringAsFixed(cost.amount == cost.amount.roundToDouble() ? 0 : 2)} €',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
@@ -490,7 +490,7 @@ class _CostsCard extends ConsumerWidget {
                       ),
                 ),
                 Text(
-                  '€${lead.totalCosts.toStringAsFixed(lead.totalCosts == lead.totalCosts.roundToDouble() ? 0 : 2)}',
+                  '${lead.totalCosts.toStringAsFixed(lead.totalCosts == lead.totalCosts.roundToDouble() ? 0 : 2)} €',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -517,7 +517,7 @@ class _CostsCard extends ConsumerWidget {
                       ),
                 ),
                 Text(
-                  '€${(lead.estimatedValue! - lead.totalCosts).toInt()}',
+                  '${(lead.estimatedValue! - lead.totalCosts).toInt()} €',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -582,7 +582,7 @@ class _CostsCard extends ConsumerWidget {
               ],
               decoration: InputDecoration(
                 labelText: 'Amount',
-                prefixText: '€ ',
+                suffixText: ' €',
                 hintText: '0',
                 filled: true,
                 fillColor: colors.bgElevated,

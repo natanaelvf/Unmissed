@@ -2,7 +2,7 @@ import 'package:intl/intl.dart';
 
 /// Number formatting extensions.
 extension NumFormatting on num {
-  /// Format as currency (€1,400)
+  /// Format as currency (1 400 €)
   String toEuroCurrency() {
     final fmt = NumberFormat.currency(locale: 'fi_FI', symbol: '€', decimalDigits: 0);
     return fmt.format(this);

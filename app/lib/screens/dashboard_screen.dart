@@ -186,48 +186,38 @@ class DashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                 ],
 
-                // ── Stats grid — 2x2 ─────────────────
-                GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 7,
-                  crossAxisSpacing: 7,
-                  childAspectRatio: 1.15,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                // ── Stats — hero card + 2-column row ──
+                StatCard(
+                  label: l10n.dashboardRecoveredRevenue,
+                  targetValue: stats.recoveredRevenue,
+                  suffix: ' €',
+                  emoji: '💰',
+                  accentColor: colors.accentSuccess,
+                  trend: stats.potentialRevenue > 0
+                      ? '/ ${_formatEur(stats.potentialRevenue.toInt())} € potentiaali'
+                      : '',
+                  trendUp: true,
+                ),
+                const SizedBox(height: 7),
+                Row(
                   children: [
-                    StatCard(
-                      label: l10n.dashboardRecoveredRevenue,
-                      targetValue: stats.recoveredRevenue,
-                      prefix: '€',
-                      emoji: '💰',
-                      accentColor: colors.accentSuccess,
-                      trend: stats.potentialRevenue > 0
-                          ? 'of €${stats.potentialRevenue.toInt()} potential'
-                          : '',
-                      trendUp: true,
+                    Expanded(
+                      child: StatCard(
+                        label: l10n.dashboardLeadsRecovered,
+                        targetValue: stats.leadsRecovered.toDouble(),
+                        emoji: '📞',
+                        accentColor: colors.accentPrimary,
+                      ),
                     ),
-                    StatCard(
-                      label: l10n.dashboardLeadsRecovered,
-                      targetValue: stats.leadsRecovered.toDouble(),
-                      emoji: '📞',
-                      accentColor: colors.accentPrimary,
-                    ),
-                    StatCard(
-                      label: l10n.dashboardRecoveryRate,
-                      targetValue: stats.recoveryRate.toDouble(),
-                      suffix: '%',
-                      emoji: '📈',
-                      accentColor: colors.accentInfo,
-                    ),
-                    StatCard(
-                      label: l10n.dashboardAvgResponseTime,
-                      targetValue: stats.avgResponseTimeMinutes ?? 0,
-                      suffix: ' min',
-                      emoji: '⚡',
-                      accentColor: colors.accentDanger,
-                      overrideText: stats.avgResponseTimeMinutes == null
-                          ? 'N/A'
-                          : null,
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: StatCard(
+                        label: l10n.dashboardRecoveryRate,
+                        targetValue: stats.recoveryRate.toDouble(),
+                        suffix: '%',
+                        emoji: '📈',
+                        accentColor: colors.accentInfo,
+                      ),
                     ),
                   ],
                 ),
@@ -521,6 +511,19 @@ class DashboardScreen extends ConsumerWidget {
         ][now.month - 1];
     return '$weekday, ${now.day} $month ${now.year}';
   }
+  /// Format a euro amount with Finnish thousands separator (non-breaking space).
+  static String _formatEur(int value) {
+    if (value >= 1000) {
+      final str = value.toString();
+      final buf = StringBuffer();
+      for (int i = 0; i < str.length; i++) {
+        if (i > 0 && (str.length - i) % 3 == 0) buf.write('\u00A0');
+        buf.write(str[i]);
+      }
+      return buf.toString();
+    }
+    return value.toString();
+  }
 }
 
 /// Reusable section header with icon + title.
@@ -622,7 +625,7 @@ class _CalendarLeadTile extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '€${lead.estimatedValue!.toInt()}',
+                  '${lead.estimatedValue!.toInt()} €',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w700,

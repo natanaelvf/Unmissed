@@ -207,7 +207,7 @@ class MonthCalendar extends StatelessWidget {
                                 // Revenue indicator for future bookings
                                 if (isFuture && bookingRev > 0)
                                   Text(
-                                    '€${bookingRev.toInt()}',
+                                    '${bookingRev.toInt()} €',
                                     style: TextStyle(
                                       fontSize: 7,
                                       fontWeight: FontWeight.w700,
@@ -217,7 +217,7 @@ class MonthCalendar extends StatelessWidget {
                                 // Revenue for past/today completed bookings
                                 if (!isFuture && bookingRev > 0 && !hasCollectedLeads)
                                   Text(
-                                    '€${bookingRev.toInt()}',
+                                    '${bookingRev.toInt()} €',
                                     style: TextStyle(
                                       fontSize: 7,
                                       fontWeight: FontWeight.w700,
@@ -281,7 +281,7 @@ class _LegendItem extends StatelessWidget {
           )
         else
           Text(
-            '€',
+            '€',  // Legend icon — single symbol is fine here
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w700,

@@ -92,7 +92,7 @@ class ScheduleCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '€${lead.estimatedValue!.toInt()}',
+                  '${lead.estimatedValue!.toInt()} €',
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

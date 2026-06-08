@@ -191,7 +191,7 @@ class _AddLeadSheetState extends State<AddLeadSheet> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 hintText: '350',
-                prefixText: '€ ',
+                suffixText: ' €',
               ),
             ),
             const SizedBox(height: 24),

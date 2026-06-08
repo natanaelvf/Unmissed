@@ -82,7 +82,7 @@ class _StatCardState extends State<StatCard>
                   widget.label,
                   style: Theme.of(context).textTheme.labelSmall,
                   overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
+                  maxLines: 2,
                 ),
               ),
               Container(
@@ -137,14 +137,20 @@ class _StatCardState extends State<StatCard>
 
           // Trend
           if (widget.trend.isNotEmpty)
-            Text(
-              '${widget.trendUp ? '↑' : '↓'} ${widget.trend}',
-              style: TextStyle(
-                fontSize: 12,
-                color: widget.trendUp
-                    ? colors.accentSuccess
-                    : colors.accentDanger,
-                fontWeight: FontWeight.w500,
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${widget.trendUp ? '↑' : '↓'} ${widget.trend}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: widget.trendUp
+                      ? colors.accentSuccess
+                      : colors.accentDanger,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
         ],

@@ -195,7 +195,7 @@ class _StepSchedulePreferencesState
             keyboardType: TextInputType.number,
             onChanged: (_) => _sync(),
             decoration: const InputDecoration(
-              prefixText: '€ ',
+              suffixText: ' €',
               hintText: '350',
             ),
           ),

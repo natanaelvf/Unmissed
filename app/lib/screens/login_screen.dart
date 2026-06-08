@@ -3,6 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
+import '../providers/contractor_provider.dart';
+import '../config/supabase_config.dart';
 import '../theme/app_colors.dart';
 
 /// Login screen — email/password + Google native sign-in.
@@ -105,6 +107,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final colors = AppColors.of(context);
     final authState = ref.watch(authProvider).state;
 
+    // ── Splash gate ──────────────────────────────────────────────────
+    // If the user already has a persisted session, never show the login
+    // form.  Display a branded splash until the router redirect fires.
+    final hasSession = supabase.auth.currentSession != null;
+    final isContractorLoaded = ref.watch(isContractorLoadedProvider);
+
+    if (hasSession) {
+      // Session exists — the router will redirect away from /login once
+      // contractor data is known.  Show a branded splash in the meantime
+      // so the login form is never visible to returning users.
+      return Scaffold(
+        backgroundColor: colors.bgBase,
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: colors.accentPrimaryMuted,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  Icons.phone_missed_rounded,
+                  color: colors.accentPrimary,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: colors.accentPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     // Show error snackbar when auth state has an error.
     ref.listen(authProvider, (previous, next) {
       final msg = next.state.errorMessage;

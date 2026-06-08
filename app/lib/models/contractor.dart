@@ -69,10 +69,10 @@ class Contractor {
   /// Tier display price per month.
   String get tierPrice {
     switch (tier) {
-      case 'starter': return '€149';
-      case 'growth': return '€249';
-      case 'pro': return '€399';
-      default: return '€149';
+      case 'starter': return '149 €';
+      case 'growth': return '249 €';
+      case 'pro': return '399 €';
+      default: return '149 €';
     }
   }
 
