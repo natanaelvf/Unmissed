@@ -67,7 +67,7 @@ const TEMPLATES_FI: TemplateSet = {
     `Kuinka kiireellinen asia on?\n1 - Ei kiire, voi odottaa muutaman päivän\n2 - Pian, 24-48h sisällä\n3 - Kiireellinen, tarvitsen apua tänään\n4 - Hätätilanne, tarvitsen apua nyt`,
 
   askName: () =>
-    `Kiitos! Mikä on nimesi, jotta voimme puhutella sinua oikein?`,
+    `Kiitos! Millä nimellä voimme kutsua sinua?`,
 
   bookingLink: (businessName, calendlyUrl, urgency) => {
     switch (urgency) {

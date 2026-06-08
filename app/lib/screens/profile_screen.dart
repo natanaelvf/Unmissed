@@ -4,12 +4,69 @@ import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import '../providers/auth_provider.dart';
 import '../providers/contractor_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/locale_provider.dart';
 import '../theme/app_colors.dart';
 import '../widgets/usage_bar.dart';
 
 /// Profile screen — account info, language switch, logout.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
+
+  static void _showLanguagePicker(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final currentLocale = ref.read(localeProvider);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.bgSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Handle bar
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colors.borderSubtle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ...supportedLocales.map((locale) {
+                  final isSelected =
+                      locale.languageCode == currentLocale.languageCode;
+                  final label =
+                      localeLabels[locale.languageCode] ?? locale.languageCode;
+                  return ListTile(
+                    leading: Text(
+                      locale.languageCode == 'fi' ? '🇫🇮' : '🇬🇧',
+                      style: const TextStyle(fontSize: 24),
+                    ),
+                    title: Text(label),
+                    trailing: isSelected
+                        ? Icon(Icons.check_circle,
+                            color: colors.accentPrimary)
+                        : null,
+                    onTap: () {
+                      ref.read(localeProvider.notifier).setLocale(locale);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -171,13 +228,10 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   child: Column(
                     children: [
-                      _InfoTile(
-                        icon: Icons.language,
+                      _LanguageTile(
                         label: l10n.profileLanguage,
-                        value:
-                            Localizations.localeOf(context).languageCode == 'fi'
-                                ? 'Suomi'
-                                : 'English',
+                        currentLocale: ref.watch(localeProvider),
+                        onTap: () => _showLanguagePicker(context, ref),
                       ),
                       const Divider(),
                       _InfoTile(
@@ -278,6 +332,48 @@ class _InfoTile extends StatelessWidget {
           ),
           Text(value, style: Theme.of(context).textTheme.bodySmall),
         ],
+      ),
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  final String label;
+  final Locale currentLocale;
+  final VoidCallback onTap;
+
+  const _LanguageTile({
+    required this.label,
+    required this.currentLocale,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final flag = currentLocale.languageCode == 'fi' ? '🇫🇮' : '🇬🇧';
+    final langName =
+        localeLabels[currentLocale.languageCode] ?? currentLocale.languageCode;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(Icons.language, size: 20, color: colors.textTertiary),
+            const SizedBox(width: 12),
+            Expanded(
+              child:
+                  Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Text('$flag $langName',
+                style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 18, color: colors.textTertiary),
+          ],
+        ),
       ),
     );
   }

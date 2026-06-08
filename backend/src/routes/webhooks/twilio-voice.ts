@@ -72,7 +72,8 @@ router.post('/', async (req: Request, res: Response) => {
     if (contractor.number_setup_type === 'forwarding') {
       // Forwarded calls mean the contractor ALREADY missed it on their phone.
       // Bypass dialing the contractor to prevent infinite forwarding loops.
-      twiml.redirect(`/webhooks/twilio-voice/ivr-menu?contractorId=${contractor.id}&leadId=${lead.id}&isNew=${isNew}`);
+      // Go straight to Finnish voicemail (IVR menu skipped — Finnish-only for now)
+      twiml.redirect(`/webhooks/twilio-voice/voicemail-fi?contractorId=${contractor.id}&leadId=${lead.id}&isNew=${isNew}`);
     } else {
       // Direct number setup — we should ring the contractor first if open
       if (!afterHours || contractor.after_hours_ring) {
@@ -83,8 +84,8 @@ router.post('/', async (req: Request, res: Response) => {
         });
         dial.number(contractor.contact_phone);
       } else {
-        // Closed / after hours — route directly to IVR/Voicemail
-        twiml.redirect(`/webhooks/twilio-voice/ivr-menu?contractorId=${contractor.id}&leadId=${lead.id}&isNew=${isNew}`);
+        // Closed / after hours — straight to Finnish voicemail (IVR skipped)
+        twiml.redirect(`/webhooks/twilio-voice/voicemail-fi?contractorId=${contractor.id}&leadId=${lead.id}&isNew=${isNew}`);
       }
     }
 
@@ -109,11 +110,11 @@ router.post('/status', async (req: Request, res: Response) => {
 
   try {
     if (['no-answer', 'busy', 'failed'].includes(DialCallStatus)) {
-      // Contractor missed the call -> redirect caller to IVR menu
+      // Contractor missed the call -> redirect caller to Finnish voicemail (IVR skipped)
       if (leadId) {
         recordLeadEvent(leadId, 'call_missed', { dialStatus: DialCallStatus });
       }
-      twiml.redirect(`/webhooks/twilio-voice/ivr-menu?contractorId=${contractorId}&leadId=${leadId}&isNew=${isNew}`);
+      twiml.redirect(`/webhooks/twilio-voice/voicemail-fi?contractorId=${contractorId}&leadId=${leadId}&isNew=${isNew}`);
     } else if (DialCallStatus === 'completed') {
       // Call was successfully answered by contractor
       // Mark lead as completed or remove/update it so we don't trigger missed call SMS
@@ -137,6 +138,8 @@ router.post('/status', async (req: Request, res: Response) => {
 
 /**
  * POST /ivr-menu — Interactive Voice Response language selection menu
+ * NOTE: Currently bypassed — all calls route directly to Finnish voicemail.
+ * Kept for future re-enablement when multi-language IVR is needed.
  */
 router.post('/ivr-menu', async (req: Request, res: Response) => {
   const { contractorId, leadId, isNew } = req.query as Record<string, string>;

@@ -5,6 +5,7 @@ import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
+import 'providers/locale_provider.dart';
 
 /// Root MaterialApp with router, dual themes, and localization.
 class App extends ConsumerWidget {
@@ -15,6 +16,7 @@ class App extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     final themePref = ref.watch(themePreferenceProvider);
     final themeMode = themeModeFromPreference(themePref);
+    final locale = ref.watch(localeProvider);
 
     return MaterialApp.router(
       title: 'Unmissed',
@@ -27,15 +29,15 @@ class App extends ConsumerWidget {
 
       routerConfig: router,
 
-      // Localization
+      // Localization — driven by localeProvider (persisted, default: Finnish)
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('en'), Locale('fi')],
-      locale: const Locale('en'), // Default to English
+      supportedLocales: supportedLocales,
+      locale: locale,
     );
   }
 }

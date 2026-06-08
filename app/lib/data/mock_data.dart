@@ -274,7 +274,7 @@ final Map<String, List<Message>> mockMessages = {
     Message(id: 'm002-4', leadId: 'lead-002', direction: MessageDirection.inbound, body: 'Kylpyhuoneen lattialämmitys ei toimi. Termostaatti näyttää virhettä E3.', sentAt: _daysAgo(1, 14, 38)),
     Message(id: 'm002-5', leadId: 'lead-002', direction: MessageDirection.outbound, body: 'Kuinka kiireellinen?\n1 — Hätä\n2 — Kiireellinen\n3 — Tällä viikolla\n4 — Ei kiire', sentAt: _daysAgo(1, 14, 39)),
     Message(id: 'm002-6', leadId: 'lead-002', direction: MessageDirection.inbound, body: '3', sentAt: _daysAgo(1, 14, 42)),
-    Message(id: 'm002-7', leadId: 'lead-002', direction: MessageDirection.outbound, body: 'Selvä. Mikä on nimesi? Tässä linkki ajanvaraukseen: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(1, 14, 43)),
+    Message(id: 'm002-7', leadId: 'lead-002', direction: MessageDirection.outbound, body: 'Selvä. Millä nimellä voimme kutsua sinua? Tässä linkki ajanvaraukseen: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(1, 14, 43)),
     Message(id: 'm002-8', leadId: 'lead-002', direction: MessageDirection.inbound, body: 'Anna Laine', sentAt: _daysAgo(1, 14, 50)),
     Message(id: 'm002-9', leadId: 'lead-002', direction: MessageDirection.outbound, body: 'Aika varattu! Virtanen LVI soittaa sinulle huomenna klo 10:00. Kiitos Anna!', sentAt: _daysAgo(1, 15, 0)),
   ],
@@ -286,7 +286,7 @@ final Map<String, List<Message>> mockMessages = {
     Message(id: 'm004-4', leadId: 'lead-004', direction: MessageDirection.inbound, body: 'Haluaisin tarjouksen koko talon putkisaneerauksesta. 1970-luvun rivitalo.', sentAt: _daysAgo(2, 11, 5)),
     Message(id: 'm004-5', leadId: 'lead-004', direction: MessageDirection.outbound, body: 'Kuinka kiireellinen?\n1 — Hätä\n2 — Kiireellinen\n3 — Tällä viikolla\n4 — Ei kiire', sentAt: _daysAgo(2, 11, 6)),
     Message(id: 'm004-6', leadId: 'lead-004', direction: MessageDirection.inbound, body: '4', sentAt: _daysAgo(2, 11, 15)),
-    Message(id: 'm004-7', leadId: 'lead-004', direction: MessageDirection.outbound, body: 'Nimesi? Ja varaa aika täältä: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(2, 11, 16)),
+    Message(id: 'm004-7', leadId: 'lead-004', direction: MessageDirection.outbound, body: 'Millä nimellä kutsumme sinua? Varaa aika täältä: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(2, 11, 16)),
     Message(id: 'm004-8', leadId: 'lead-004', direction: MessageDirection.inbound, body: 'Liisa Virtanen', sentAt: _daysAgo(2, 12, 0)),
   ],
   'lead-005': [
@@ -312,7 +312,7 @@ final Map<String, List<Message>> mockMessages = {
     Message(id: 'm008-4', leadId: 'lead-008', direction: MessageDirection.inbound, body: 'Kuumavesivaraaja ei lämmitä. Vain kylmää tulee.', sentAt: _daysAgo(1, 10, 15)),
     Message(id: 'm008-5', leadId: 'lead-008', direction: MessageDirection.outbound, body: 'Kiireellisyys?\n1 — Hätä\n2 — Kiireellinen\n3 — Tällä viikolla\n4 — Ei kiire', sentAt: _daysAgo(1, 10, 16)),
     Message(id: 'm008-6', leadId: 'lead-008', direction: MessageDirection.inbound, body: '2', sentAt: _daysAgo(1, 10, 20)),
-    Message(id: 'm008-7', leadId: 'lead-008', direction: MessageDirection.outbound, body: 'Nimesi? Varaa aika: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(1, 10, 21)),
+    Message(id: 'm008-7', leadId: 'lead-008', direction: MessageDirection.outbound, body: 'Millä nimellä kutsumme sinua? Varaa aika: https://calendly.com/virtanenlvi/callback', sentAt: _daysAgo(1, 10, 21)),
     Message(id: 'm008-8', leadId: 'lead-008', direction: MessageDirection.inbound, body: 'Timo Lahtinen', sentAt: _daysAgo(1, 10, 30)),
   ],
 };
