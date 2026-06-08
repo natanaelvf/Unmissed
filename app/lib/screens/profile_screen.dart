@@ -68,6 +68,60 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
+  static void _showThemePicker(BuildContext context, WidgetRef ref) {
+    final colors = AppColors.of(context);
+    final currentPref = ref.read(themePreferenceProvider);
+
+    final options = [
+      (ThemePreference.system, Icons.brightness_auto, 'System'),
+      (ThemePreference.light, Icons.light_mode_rounded, 'Light'),
+      (ThemePreference.dark, Icons.dark_mode_rounded, 'Dark'),
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: colors.bgSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colors.borderSubtle,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                ...options.map((opt) {
+                  final isSelected = opt.$1 == currentPref;
+                  return ListTile(
+                    leading: Icon(opt.$2, size: 24, color: isSelected ? colors.accentPrimary : colors.textTertiary),
+                    title: Text(opt.$3),
+                    trailing: isSelected
+                        ? Icon(Icons.check_circle, color: colors.accentPrimary)
+                        : null,
+                    onTap: () {
+                      ref.read(themePreferenceProvider.notifier).setTheme(opt.$1);
+                      Navigator.pop(ctx);
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
@@ -234,15 +288,10 @@ class ProfileScreen extends ConsumerWidget {
                         onTap: () => _showLanguagePicker(context, ref),
                       ),
                       const Divider(),
-                      _InfoTile(
-                        icon: Icons.brightness_6_rounded,
+                      _ThemeTile(
                         label: 'Theme',
-                        value:
-                            themePref == ThemePreference.system
-                                ? 'System'
-                                : themePref == ThemePreference.dark
-                                ? 'Dark'
-                                : 'Light',
+                        currentPref: themePref,
+                        onTap: () => _showThemePicker(context, ref),
                       ),
                       const Divider(),
                       _InfoTile(
@@ -370,6 +419,53 @@ class _LanguageTile extends StatelessWidget {
             ),
             Text('$flag $langName',
                 style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(width: 4),
+            Icon(Icons.chevron_right, size: 18, color: colors.textTertiary),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeTile extends StatelessWidget {
+  final String label;
+  final ThemePreference currentPref;
+  final VoidCallback onTap;
+
+  const _ThemeTile({
+    required this.label,
+    required this.currentPref,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final icon = switch (currentPref) {
+      ThemePreference.system => Icons.brightness_auto,
+      ThemePreference.dark => Icons.dark_mode_rounded,
+      ThemePreference.light => Icons.light_mode_rounded,
+    };
+    final valueName = switch (currentPref) {
+      ThemePreference.system => 'System',
+      ThemePreference.dark => 'Dark',
+      ThemePreference.light => 'Light',
+    };
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: colors.textTertiary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            ),
+            Text(valueName, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right, size: 18, color: colors.textTertiary),
           ],

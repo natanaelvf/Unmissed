@@ -133,7 +133,7 @@ class _StatCardState extends State<StatCard>
                 );
               },
             ),
-          const Spacer(),
+          const SizedBox(height: 8),
 
           // Trend
           if (widget.trend.isNotEmpty)

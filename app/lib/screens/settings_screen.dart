@@ -197,33 +197,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           icon: Icons.brightness_auto,
                           label: 'System',
                           isSelected: themePref == ThemePreference.system,
-                          onTap:
-                              () =>
-                                  ref
-                                      .read(themePreferenceProvider.notifier)
-                                      .state = ThemePreference.system,
+                          onTap: () => ref
+                              .read(themePreferenceProvider.notifier)
+                              .setTheme(ThemePreference.system),
                         ),
                         const SizedBox(width: 8),
                         _ThemeOption(
                           icon: Icons.dark_mode_rounded,
                           label: 'Dark',
                           isSelected: themePref == ThemePreference.dark,
-                          onTap:
-                              () =>
-                                  ref
-                                      .read(themePreferenceProvider.notifier)
-                                      .state = ThemePreference.dark,
+                          onTap: () => ref
+                              .read(themePreferenceProvider.notifier)
+                              .setTheme(ThemePreference.dark),
                         ),
                         const SizedBox(width: 8),
                         _ThemeOption(
                           icon: Icons.light_mode_rounded,
                           label: 'Light',
                           isSelected: themePref == ThemePreference.light,
-                          onTap:
-                              () =>
-                                  ref
-                                      .read(themePreferenceProvider.notifier)
-                                      .state = ThemePreference.light,
+                          onTap: () => ref
+                              .read(themePreferenceProvider.notifier)
+                              .setTheme(ThemePreference.light),
                         ),
                       ],
                     ),
