@@ -414,4 +414,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get waitingForResponse => 'Waiting for response...';
+
+  @override
+  String get settingsNotifications => 'Notifications';
+
+  @override
+  String get settingsNotifMissedCall => 'Missed Calls';
+
+  @override
+  String get settingsNotifMissedCallDesc => 'Get notified when a call is missed';
+
+  @override
+  String get settingsNotifBooking => 'Booking Confirmations';
+
+  @override
+  String get settingsNotifBookingDesc => 'Get notified when a lead books a callback';
+
+  @override
+  String get settingsNotifStatusChange => 'Lead Status Changes';
+
+  @override
+  String get settingsNotifStatusChangeDesc => 'Get notified when a lead status changes';
+
+  @override
+  String get settingsNotifSystemAlert => 'System Alerts';
+
+  @override
+  String get settingsNotifSystemAlertDesc => 'Critical system notifications (always enabled)';
+
+  @override
+  String get settingsNotifPayment => 'Payment Notifications';
+
+  @override
+  String get settingsNotifPaymentDesc => 'Get notified about payment updates';
+
+  @override
+  String get voicemailTitle => 'Voicemail Greetings';
+
+  @override
+  String get voicemailSubtitle => 'Customize the greeting callers hear when you can\'t answer';
+
+  @override
+  String get voicemailTypeDefault => 'Default (AI Voice)';
+
+  @override
+  String get voicemailTypePreset => 'Preset';
+
+  @override
+  String get voicemailTypeCustom => 'Custom Recording';
+
+  @override
+  String get voicemailRecord => 'Record';
+
+  @override
+  String get voicemailUpload => 'Upload';
+
+  @override
+  String get voicemailDelete => 'Delete Recording';
+
+  @override
+  String get voicemailDeleteConfirm => 'Are you sure? This will revert to the default greeting.';
+
+  @override
+  String get voicemailRecording => 'Recording...';
+
+  @override
+  String get voicemailRecordingStop => 'Stop';
+
+  @override
+  String get voicemailPlay => 'Preview';
+
+  @override
+  String get voicemailPlaying => 'Playing...';
+
+  @override
+  String get voicemailSaved => 'Voicemail greeting updated!';
+
+  @override
+  String get voicemailUploadSuccess => 'Recording uploaded successfully';
+
+  @override
+  String get voicemailLocaleFi => 'Finnish';
+
+  @override
+  String get voicemailLocaleEn => 'English';
+
+  @override
+  String get voicemailLocalePt => 'Portuguese';
 }

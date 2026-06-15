@@ -414,4 +414,91 @@ class AppLocalizationsFi extends AppLocalizations {
 
   @override
   String get waitingForResponse => 'Odotetaan vastausta...';
+
+  @override
+  String get settingsNotifications => 'Ilmoitukset';
+
+  @override
+  String get settingsNotifMissedCall => 'Vastaamattomat puhelut';
+
+  @override
+  String get settingsNotifMissedCallDesc => 'Ilmoitus kun puhelu jää vastaamatta';
+
+  @override
+  String get settingsNotifBooking => 'Varausvahvistukset';
+
+  @override
+  String get settingsNotifBookingDesc => 'Ilmoitus kun liidi varaa takaisinsoiton';
+
+  @override
+  String get settingsNotifStatusChange => 'Liidin tilamuutokset';
+
+  @override
+  String get settingsNotifStatusChangeDesc => 'Ilmoitus kun liidin tila muuttuu';
+
+  @override
+  String get settingsNotifSystemAlert => 'Järjestelmähälytykset';
+
+  @override
+  String get settingsNotifSystemAlertDesc => 'Kriittiset järjestelmäilmoitukset (aina päällä)';
+
+  @override
+  String get settingsNotifPayment => 'Maksuisuilmoitukset';
+
+  @override
+  String get settingsNotifPaymentDesc => 'Ilmoitus maksupäivityksistä';
+
+  @override
+  String get voicemailTitle => 'Vastaajaviestit';
+
+  @override
+  String get voicemailSubtitle => 'Muokkaa tervehdystä, jonka soittajat kuulevat kun et voi vastata';
+
+  @override
+  String get voicemailTypeDefault => 'Oletus (tekoääni)';
+
+  @override
+  String get voicemailTypePreset => 'Valmis';
+
+  @override
+  String get voicemailTypeCustom => 'Oma äänitys';
+
+  @override
+  String get voicemailRecord => 'Äänitä';
+
+  @override
+  String get voicemailUpload => 'Lataa';
+
+  @override
+  String get voicemailDelete => 'Poista äänitys';
+
+  @override
+  String get voicemailDeleteConfirm => 'Oletko varma? Tämä palauttaa oletustervehdyksen.';
+
+  @override
+  String get voicemailRecording => 'Äänitetään...';
+
+  @override
+  String get voicemailRecordingStop => 'Lopeta';
+
+  @override
+  String get voicemailPlay => 'Esikuuntele';
+
+  @override
+  String get voicemailPlaying => 'Soitetaan...';
+
+  @override
+  String get voicemailSaved => 'Vastaajatervehdys päivitetty!';
+
+  @override
+  String get voicemailUploadSuccess => 'Äänitys ladattu onnistuneesti';
+
+  @override
+  String get voicemailLocaleFi => 'Suomi';
+
+  @override
+  String get voicemailLocaleEn => 'Englanti';
+
+  @override
+  String get voicemailLocalePt => 'Portugali';
 }

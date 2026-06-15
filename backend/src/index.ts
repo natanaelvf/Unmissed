@@ -13,6 +13,7 @@ import deviceTokenRoute from './routes/api/device-token';
 import leadsRoute from './routes/api/leads';
 import statsRoute from './routes/api/stats';
 import contractorRoute from './routes/api/contractor';
+import voicemailRoute from './routes/api/voicemail';
 import adminRoute from './routes/api/admin';
 
 // --- Middleware imports ---
@@ -109,7 +110,7 @@ app.get('/health', async (_req, res) => {
 });
 
 // --- API routes (authenticated + rate limited) ---
-app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute, leadsRoute, statsRoute, contractorRoute);
+app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute, leadsRoute, statsRoute, contractorRoute, voicemailRoute);
 app.use('/api/admin', apiRateLimiter, authMiddleware, adminAuthMiddleware, adminRoute);
 
 // --- Webhook routes (validated by signature + rate limited) ---

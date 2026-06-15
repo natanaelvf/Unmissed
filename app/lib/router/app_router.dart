@@ -13,6 +13,7 @@ import '../screens/dashboard_screen.dart';
 import '../screens/leads_screen.dart';
 import '../screens/lead_detail_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/voicemail_settings_screen.dart';
 import '../screens/profile_screen.dart';
 import '../screens/onboarding/onboarding_screen.dart';
 import '../widgets/bottom_nav_shell.dart';
@@ -188,6 +189,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'voicemail',
+                    builder: (context, state) =>
+                        const VoicemailSettingsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

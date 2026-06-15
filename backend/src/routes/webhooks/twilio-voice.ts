@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/node';
 import { lookupContractorByTwilioNumber } from '../../services/twilio';
 import { findOrCreateLead } from '../../services/deduplication';
 import { initiateConsentSms } from '../../services/sms-state-machine';
-import { sendPushNotification } from '../../services/notifications';
+import { notificationService } from '../../services/notifications';
 import { enrichLeadWithCallerName } from '../../services/caller-lookup';
 import { isWithinWorkingHours } from '../../utils/working-hours';
 import { TwilioVoiceWebhookBody } from '../../types';
@@ -282,11 +282,11 @@ router.post('/call-status', async (req: Request, res: Response) => {
             // Non-blocking: attempt to resolve caller name via Twilio Lookup
             enrichLeadWithCallerName(lead.id, From, contractor.id).catch(() => {});
 
-            await sendPushNotification(
+            await notificationService.sendMissedCall(
               contractor.id,
-              lead.call_count === 1 ? 'Missed Call' : `Repeat Caller (${lead.call_count}x)`,
-              `Missed call from ${From}`,
-              { leadId: lead.id }
+              lead.id,
+              From,
+              lead.call_count || 1
             );
           }
         }

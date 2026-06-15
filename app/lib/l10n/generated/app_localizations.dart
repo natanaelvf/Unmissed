@@ -880,6 +880,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Waiting for response...'**
   String get waitingForResponse;
+
+  /// No description provided for @settingsNotifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get settingsNotifications;
+
+  /// No description provided for @settingsNotifMissedCall.
+  ///
+  /// In en, this message translates to:
+  /// **'Missed Calls'**
+  String get settingsNotifMissedCall;
+
+  /// No description provided for @settingsNotifMissedCallDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when a call is missed'**
+  String get settingsNotifMissedCallDesc;
+
+  /// No description provided for @settingsNotifBooking.
+  ///
+  /// In en, this message translates to:
+  /// **'Booking Confirmations'**
+  String get settingsNotifBooking;
+
+  /// No description provided for @settingsNotifBookingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when a lead books a callback'**
+  String get settingsNotifBookingDesc;
+
+  /// No description provided for @settingsNotifStatusChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead Status Changes'**
+  String get settingsNotifStatusChange;
+
+  /// No description provided for @settingsNotifStatusChangeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified when a lead status changes'**
+  String get settingsNotifStatusChangeDesc;
+
+  /// No description provided for @settingsNotifSystemAlert.
+  ///
+  /// In en, this message translates to:
+  /// **'System Alerts'**
+  String get settingsNotifSystemAlert;
+
+  /// No description provided for @settingsNotifSystemAlertDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical system notifications (always enabled)'**
+  String get settingsNotifSystemAlertDesc;
+
+  /// No description provided for @settingsNotifPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Notifications'**
+  String get settingsNotifPayment;
+
+  /// No description provided for @settingsNotifPaymentDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Get notified about payment updates'**
+  String get settingsNotifPaymentDesc;
+
+  /// No description provided for @voicemailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Voicemail Greetings'**
+  String get voicemailTitle;
+
+  /// No description provided for @voicemailSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize the greeting callers hear when you can\'t answer'**
+  String get voicemailSubtitle;
+
+  /// No description provided for @voicemailTypeDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (AI Voice)'**
+  String get voicemailTypeDefault;
+
+  /// No description provided for @voicemailTypePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset'**
+  String get voicemailTypePreset;
+
+  /// No description provided for @voicemailTypeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Recording'**
+  String get voicemailTypeCustom;
+
+  /// No description provided for @voicemailRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get voicemailRecord;
+
+  /// No description provided for @voicemailUpload.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload'**
+  String get voicemailUpload;
+
+  /// No description provided for @voicemailDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Recording'**
+  String get voicemailDelete;
+
+  /// No description provided for @voicemailDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure? This will revert to the default greeting.'**
+  String get voicemailDeleteConfirm;
+
+  /// No description provided for @voicemailRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording...'**
+  String get voicemailRecording;
+
+  /// No description provided for @voicemailRecordingStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get voicemailRecordingStop;
+
+  /// No description provided for @voicemailPlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get voicemailPlay;
+
+  /// No description provided for @voicemailPlaying.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing...'**
+  String get voicemailPlaying;
+
+  /// No description provided for @voicemailSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Voicemail greeting updated!'**
+  String get voicemailSaved;
+
+  /// No description provided for @voicemailUploadSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording uploaded successfully'**
+  String get voicemailUploadSuccess;
+
+  /// No description provided for @voicemailLocaleFi.
+  ///
+  /// In en, this message translates to:
+  /// **'Finnish'**
+  String get voicemailLocaleFi;
+
+  /// No description provided for @voicemailLocaleEn.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get voicemailLocaleEn;
+
+  /// No description provided for @voicemailLocalePt.
+  ///
+  /// In en, this message translates to:
+  /// **'Portuguese'**
+  String get voicemailLocalePt;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

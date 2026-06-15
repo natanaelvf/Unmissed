@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import '../providers/contractor_provider.dart';
 import '../providers/theme_provider.dart';
@@ -331,6 +332,110 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 24),
 
+              // Voicemail Greetings — navigates to sub-screen
+              _SectionHeader(title: l10n.voicemailTitle),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: () => context.push('/settings/voicemail'),
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colors.bgSurface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: colors.borderSubtle),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: colors.accentPrimary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(Icons.voicemail,
+                            color: colors.accentPrimary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l10n.voicemailTitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              l10n.voicemailSubtitle,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(color: colors.textTertiary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: colors.textTertiary),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Notification Preferences
+              _SectionHeader(title: l10n.settingsNotifications),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.bgSurface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: colors.borderSubtle),
+                ),
+                child: Column(
+                  children: [
+                    _NotifToggle(
+                      title: l10n.settingsNotifMissedCall,
+                      subtitle: l10n.settingsNotifMissedCallDesc,
+                      value: c.notificationPreferences['missed_call'] ?? true,
+                      onChanged: (val) => _toggleNotifPref('missed_call', val),
+                    ),
+                    _NotifToggle(
+                      title: l10n.settingsNotifBooking,
+                      subtitle: l10n.settingsNotifBookingDesc,
+                      value: c.notificationPreferences['booking_confirmed'] ?? true,
+                      onChanged: (val) => _toggleNotifPref('booking_confirmed', val),
+                    ),
+                    _NotifToggle(
+                      title: l10n.settingsNotifStatusChange,
+                      subtitle: l10n.settingsNotifStatusChangeDesc,
+                      value: c.notificationPreferences['lead_status_change'] ?? true,
+                      onChanged: (val) => _toggleNotifPref('lead_status_change', val),
+                    ),
+                    _NotifToggle(
+                      title: l10n.settingsNotifSystemAlert,
+                      subtitle: l10n.settingsNotifSystemAlertDesc,
+                      value: true,
+                      onChanged: null, // System alerts cannot be disabled
+                    ),
+                    _NotifToggle(
+                      title: l10n.settingsNotifPayment,
+                      subtitle: l10n.settingsNotifPaymentDesc,
+                      value: c.notificationPreferences['payment_notification'] ?? true,
+                      onChanged: (val) => _toggleNotifPref('payment_notification', val),
+                      isLast: true,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
               // Account
               _SectionHeader(title: l10n.settingsAccount),
               const SizedBox(height: 8),
@@ -404,6 +509,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         );
       },
     );
+  }
+
+  void _toggleNotifPref(String key, bool value) async {
+    final contractorAsync = ref.read(contractorProvider);
+    final c = contractorAsync.valueOrNull;
+    if (c == null) return;
+
+    final updatedPrefs = Map<String, bool>.from(c.notificationPreferences);
+    updatedPrefs[key] = value;
+
+    try {
+      await ref.read(contractorProvider.notifier).updateSettings({
+        'notification_preferences': updatedPrefs,
+      });
+      // Force a rebuild so the toggle visually updates
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save: $e')));
+      }
+    }
   }
 }
 
@@ -552,6 +680,72 @@ class _ThemeOption extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Notification preference toggle — used in the notifications section.
+class _NotifToggle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+  final bool isLast;
+
+  const _NotifToggle({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+    this.isLast = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+    final isDisabled = onChanged == null;
+
+    return Column(
+      children: [
+        Opacity(
+          opacity: isDisabled ? 0.5 : 1.0,
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colors.textTertiary,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch.adaptive(
+                value: value,
+                onChanged: onChanged,
+                activeColor: colors.accentPrimary,
+              ),
+            ],
+          ),
+        ),
+        if (!isLast)
+          Divider(
+            height: 20,
+            thickness: 0.5,
+            color: colors.borderSubtle,
+          ),
+      ],
     );
   }
 }

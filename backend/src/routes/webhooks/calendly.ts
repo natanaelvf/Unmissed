@@ -5,7 +5,7 @@ import { env } from '../../config/env';
 import { supabase } from '../../config/supabase';
 import { LeadStatus, Locale } from '../../types';
 import { sendSms } from '../../services/twilio';
-import { sendPushNotification } from '../../services/notifications';
+import { notificationService } from '../../services/notifications';
 import { getSmsTemplates } from '../../services/sms-state-machine';
 
 const router = Router();
@@ -162,11 +162,11 @@ router.post('/', async (req: Request, res: Response) => {
       });
 
       // Notify the contractor
-      await sendPushNotification(
+      await notificationService.sendBookingConfirmed(
         contractor.id,
-        'New Booking!',
-        `${lead.caller_name || lead.caller_phone} booked for ${formattedTime}`,
-        { leadId: lead.id }
+        lead.id,
+        lead.caller_name || lead.caller_phone,
+        formattedTime
       );
     }
 

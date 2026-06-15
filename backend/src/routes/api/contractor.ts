@@ -50,6 +50,8 @@ router.patch('/contractor/settings', async (req: Request, res: Response) => {
     'after_hours_emergency_policy', 'after_hours_ring',
     'timezone', 'locale',
     'caller_lookup_enabled',
+    'notification_preferences',
+    'voicemail_config',
   ];
 
   const filtered: Record<string, unknown> = {};

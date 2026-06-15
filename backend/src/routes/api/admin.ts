@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { supabase } from '../../config/supabase';
-import { sendPushNotification } from '../../services/notifications';
+import { notificationService } from '../../services/notifications';
 
 const router = Router();
 
@@ -335,11 +335,10 @@ router.post('/notifications/test', async (req: Request, res: Response) => {
   }
 
   try {
-    await sendPushNotification(
+    await notificationService.sendCustom(
       contractorId,
       title,
-      body || 'Test notification from admin dashboard',
-      { type: 'custom_admin', source: 'admin_dashboard' }
+      body || 'Test notification from admin dashboard'
     );
 
     console.log(`[admin] Test notification sent to contractor ${contractorId}`);

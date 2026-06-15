@@ -1,3 +1,18 @@
+/// Parse voicemail_config JSONB from Supabase into a typed map.
+/// Expected shape: { "fi": { "type": "custom", "storage_path": "..." }, ... }
+Map<String, Map<String, String>> _parseVoicemailConfig(dynamic raw) {
+  if (raw == null || raw is! Map) return {};
+  final result = <String, Map<String, String>>{};
+  for (final entry in (raw as Map<String, dynamic>).entries) {
+    if (entry.value is Map) {
+      result[entry.key] = (entry.value as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k, v?.toString() ?? ''),
+      );
+    }
+  }
+  return result;
+}
+
 class Contractor {
   final String id;
   final String businessName;
@@ -21,6 +36,8 @@ class Contractor {
   final int monthlySMSCap;
   final int smsUsedThisMonth;
   final String? fcmToken;
+  final Map<String, bool> notificationPreferences;
+  final Map<String, Map<String, String>> voicemailConfig;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -47,6 +64,15 @@ class Contractor {
     this.monthlySMSCap = 50,
     this.smsUsedThisMonth = 0,
     this.fcmToken,
+    this.notificationPreferences = const {
+      'missed_call': true,
+      'booking_confirmed': true,
+      'lead_status_change': true,
+      'system_alert': true,
+      'payment_notification': true,
+      'custom_admin': true,
+    },
+    this.voicemailConfig = const {},
     required this.createdAt,
     required this.updatedAt,
   });
@@ -100,6 +126,17 @@ class Contractor {
       monthlySMSCap: json['monthly_sms_cap'] as int? ?? 50,
       smsUsedThisMonth: json['sms_used_this_month'] as int? ?? 0,
       fcmToken: json['fcm_token'] as String?,
+      notificationPreferences: (json['notification_preferences'] as Map<String, dynamic>?)?.map(
+        (key, value) => MapEntry(key, value as bool? ?? true),
+      ) ?? {
+        'missed_call': true,
+        'booking_confirmed': true,
+        'lead_status_change': true,
+        'system_alert': true,
+        'payment_notification': true,
+        'custom_admin': true,
+      },
+      voicemailConfig: _parseVoicemailConfig(json['voicemail_config']),
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -129,6 +166,8 @@ class Contractor {
       'monthly_sms_cap': monthlySMSCap,
       'sms_used_this_month': smsUsedThisMonth,
       'fcm_token': fcmToken,
+      'notification_preferences': notificationPreferences,
+      'voicemail_config': voicemailConfig,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -157,6 +196,8 @@ class Contractor {
     int? monthlySMSCap,
     int? smsUsedThisMonth,
     String? fcmToken,
+    Map<String, bool>? notificationPreferences,
+    Map<String, Map<String, String>>? voicemailConfig,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -183,6 +224,8 @@ class Contractor {
       monthlySMSCap: monthlySMSCap ?? this.monthlySMSCap,
       smsUsedThisMonth: smsUsedThisMonth ?? this.smsUsedThisMonth,
       fcmToken: fcmToken ?? this.fcmToken,
+      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
+      voicemailConfig: voicemailConfig ?? this.voicemailConfig,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

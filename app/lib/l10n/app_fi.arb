@@ -143,5 +143,36 @@
   "timeDaysAgo": "{count} pv sitten",
   "timeWeeksAgo": "{count} vk sitten",
 
-  "waitingForResponse": "Odotetaan vastausta..."
+  "waitingForResponse": "Odotetaan vastausta...",
+
+  "settingsNotifications": "Ilmoitukset",
+  "settingsNotifMissedCall": "Vastaamattomat puhelut",
+  "settingsNotifMissedCallDesc": "Ilmoitus kun puhelu jää vastaamatta",
+  "settingsNotifBooking": "Varausvahvistukset",
+  "settingsNotifBookingDesc": "Ilmoitus kun liidi varaa takaisinsoiton",
+  "settingsNotifStatusChange": "Liidin tilamuutokset",
+  "settingsNotifStatusChangeDesc": "Ilmoitus kun liidin tila muuttuu",
+  "settingsNotifSystemAlert": "Järjestelmähälytykset",
+  "settingsNotifSystemAlertDesc": "Kriittiset järjestelmäilmoitukset (aina päällä)",
+  "settingsNotifPayment": "Maksuisuilmoitukset",
+  "settingsNotifPaymentDesc": "Ilmoitus maksupäivityksistä",
+
+  "voicemailTitle": "Vastaajaviestit",
+  "voicemailSubtitle": "Muokkaa tervehdystä, jonka soittajat kuulevat kun et voi vastata",
+  "voicemailTypeDefault": "Oletus (tekoääni)",
+  "voicemailTypePreset": "Valmis",
+  "voicemailTypeCustom": "Oma äänitys",
+  "voicemailRecord": "Äänitä",
+  "voicemailUpload": "Lataa",
+  "voicemailDelete": "Poista äänitys",
+  "voicemailDeleteConfirm": "Oletko varma? Tämä palauttaa oletustervehdyksen.",
+  "voicemailRecording": "Äänitetään...",
+  "voicemailRecordingStop": "Lopeta",
+  "voicemailPlay": "Esikuuntele",
+  "voicemailPlaying": "Soitetaan...",
+  "voicemailSaved": "Vastaajatervehdys päivitetty!",
+  "voicemailUploadSuccess": "Äänitys ladattu onnistuneesti",
+  "voicemailLocaleFi": "Suomi",
+  "voicemailLocaleEn": "Englanti",
+  "voicemailLocalePt": "Portugali"
 }

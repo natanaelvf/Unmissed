@@ -179,5 +179,36 @@
     }
   },
 
-  "waitingForResponse": "Waiting for response..."
+  "waitingForResponse": "Waiting for response...",
+
+  "settingsNotifications": "Notifications",
+  "settingsNotifMissedCall": "Missed Calls",
+  "settingsNotifMissedCallDesc": "Get notified when a call is missed",
+  "settingsNotifBooking": "Booking Confirmations",
+  "settingsNotifBookingDesc": "Get notified when a lead books a callback",
+  "settingsNotifStatusChange": "Lead Status Changes",
+  "settingsNotifStatusChangeDesc": "Get notified when a lead status changes",
+  "settingsNotifSystemAlert": "System Alerts",
+  "settingsNotifSystemAlertDesc": "Critical system notifications (always enabled)",
+  "settingsNotifPayment": "Payment Notifications",
+  "settingsNotifPaymentDesc": "Get notified about payment updates",
+
+  "voicemailTitle": "Voicemail Greetings",
+  "voicemailSubtitle": "Customize the greeting callers hear when you can't answer",
+  "voicemailTypeDefault": "Default (AI Voice)",
+  "voicemailTypePreset": "Preset",
+  "voicemailTypeCustom": "Custom Recording",
+  "voicemailRecord": "Record",
+  "voicemailUpload": "Upload",
+  "voicemailDelete": "Delete Recording",
+  "voicemailDeleteConfirm": "Are you sure? This will revert to the default greeting.",
+  "voicemailRecording": "Recording...",
+  "voicemailRecordingStop": "Stop",
+  "voicemailPlay": "Preview",
+  "voicemailPlaying": "Playing...",
+  "voicemailSaved": "Voicemail greeting updated!",
+  "voicemailUploadSuccess": "Recording uploaded successfully",
+  "voicemailLocaleFi": "Finnish",
+  "voicemailLocaleEn": "English",
+  "voicemailLocalePt": "Portuguese"
 }
