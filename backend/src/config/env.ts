@@ -70,4 +70,11 @@ export const env = {
     '',
     'BETTERSTACK_API_TOKEN not set — uptime monitor API integration disabled'
   ),
+  // Admin user IDs — comma-separated UUIDs of users with admin access
+  adminUserIds: (process.env.ADMIN_USER_IDS || '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean),
+  // Base URL of the deployed app (used for Twilio webhook configuration)
+  appBaseUrl: process.env.APP_BASE_URL || '',
 } as const;

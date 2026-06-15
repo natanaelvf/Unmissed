@@ -13,10 +13,12 @@ import deviceTokenRoute from './routes/api/device-token';
 import leadsRoute from './routes/api/leads';
 import statsRoute from './routes/api/stats';
 import contractorRoute from './routes/api/contractor';
+import adminRoute from './routes/api/admin';
 
 // --- Middleware imports ---
 import { twilioSignatureMiddleware } from './middleware/twilio-signature';
 import { authMiddleware } from './middleware/auth';
+import { adminAuthMiddleware } from './middleware/admin-auth';
 import { apiRateLimiter, webhookRateLimiter } from './middleware/rate-limit';
 
 // --- Cron job imports ---
@@ -108,6 +110,7 @@ app.get('/health', async (_req, res) => {
 
 // --- API routes (authenticated + rate limited) ---
 app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute, leadsRoute, statsRoute, contractorRoute);
+app.use('/api/admin', apiRateLimiter, authMiddleware, adminAuthMiddleware, adminRoute);
 
 // --- Webhook routes (validated by signature + rate limited) ---
 // Fix #7: Apply Twilio signature validation to Twilio webhook routes
