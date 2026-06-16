@@ -7,6 +7,7 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
+    id("com.google.firebase.appdistribution")
 }
 
 // Load keystore properties if available (for release signing)
@@ -36,6 +37,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Set the APK output filename to "Unmissed" instead of "app"
+        setProperty("archivesBaseName", "Unmissed")
     }
 
     signingConfigs {
@@ -55,6 +59,25 @@ android {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")
+            }
+
+            firebaseAppDistribution {
+                artifactType = "APK"
+                testers = "natanaelvf@gmail.com"
+                serviceCredentialsFile = rootProject.file("unmissed-project-firebase-adminsdk.json").absolutePath
+                releaseNotes = """
+🚀 Unmissed — New Build Available!
+
+Hey! A fresh build of Unmissed is ready for you to test.
+
+What's Unmissed?
+Your AI-powered missed lead recovery assistant. Never let a lead slip through the cracks again.
+
+📲 Install this build and let us know what you think.
+💬 Reply to this email or message the team directly with any feedback.
+
+— The Unmissed Team
+                """.trimIndent()
             }
         }
     }

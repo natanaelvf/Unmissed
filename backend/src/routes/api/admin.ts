@@ -1,6 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { supabase } from '../../config/supabase';
 import { notificationService } from '../../services/notifications';
+import {
+  searchAvailableNumbers,
+  purchaseAndAssignNumber,
+  releaseNumber,
+} from '../../services/twilio-provisioning';
 
 const router = Router();
 
@@ -347,6 +352,66 @@ router.post('/notifications/test', async (req: Request, res: Response) => {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error('[admin] Test notification error:', errorMsg);
     res.status(500).json({ error: `Failed to send notification: ${errorMsg}` });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// GET /api/admin/twilio/numbers/search — Search available phone numbers
+// ---------------------------------------------------------------------------
+router.get('/twilio/numbers/search', async (req: Request, res: Response) => {
+  const country = (req.query.country as string) || 'FI';
+  const areaCode = req.query.areaCode as string | undefined;
+  const contains = req.query.contains as string | undefined;
+
+  try {
+    const numbers = await searchAvailableNumbers(country, { areaCode, contains });
+    res.json(numbers);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error('[admin] Number search error:', errorMsg);
+    res.status(500).json({ error: errorMsg });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// POST /api/admin/twilio/numbers/purchase — Purchase and assign a number
+// ---------------------------------------------------------------------------
+router.post('/twilio/numbers/purchase', async (req: Request, res: Response) => {
+  const { contractorId, phoneNumber } = req.body as {
+    contractorId?: string;
+    phoneNumber?: string;
+  };
+
+  if (!contractorId || !phoneNumber) {
+    res.status(400).json({ error: 'Missing contractorId or phoneNumber' });
+    return;
+  }
+
+  try {
+    const result = await purchaseAndAssignNumber(contractorId, phoneNumber);
+    console.log(`[admin] Number ${result.phoneNumber} purchased and assigned to ${contractorId}`);
+    res.json(result);
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error('[admin] Number purchase error:', errorMsg);
+    res.status(500).json({ error: errorMsg });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// DELETE /api/admin/twilio/numbers/:contractorId — Release a contractor's number
+// ---------------------------------------------------------------------------
+router.delete('/twilio/numbers/:contractorId', async (req: Request, res: Response) => {
+  const { contractorId } = req.params;
+
+  try {
+    await releaseNumber(contractorId);
+    console.log(`[admin] Number released from contractor ${contractorId}`);
+    res.json({ success: true, message: 'Number released' });
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error('[admin] Number release error:', errorMsg);
+    res.status(500).json({ error: errorMsg });
   }
 });
 
