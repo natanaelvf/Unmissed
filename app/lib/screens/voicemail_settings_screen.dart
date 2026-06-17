@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../config/demo_config.dart';
 import '../config/supabase_config.dart';
 import '../providers/contractor_provider.dart';
 import '../theme/app_colors.dart';
@@ -120,14 +121,16 @@ class _VoicemailSettingsScreenState
 
     setState(() => _isSaving = true);
     try {
-      // Delete from storage
-      final contractorId = supabase.auth.currentUser?.id;
-      if (contractorId == null) return;
+      // In demo mode, skip actual storage deletion.
+      if (!isDemo) {
+        final contractorId = supabase.auth.currentUser?.id;
+        if (contractorId == null) return;
 
-      // Try to remove the file (it may not exist if it was a preset)
-      await supabase.storage
-          .from('voicemails')
-          .remove(['$contractorId/$locale.mp3']);
+        // Try to remove the file (it may not exist if it was a preset)
+        await supabase.storage
+            .from('voicemails')
+            .remove(['$contractorId/$locale.mp3']);
+      }
 
       // Revert config to default
       await _updateConfig(locale, 'default');

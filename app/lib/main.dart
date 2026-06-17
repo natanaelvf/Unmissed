@@ -6,10 +6,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'app.dart';
+import 'config/demo_config.dart';
+import 'providers/demo_providers.dart';
 import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // ── Demo mode — skip all backend services ──────────────────────────
+  if (isDemo) {
+    debugPrint('🟡 DEMO MODE — running with mock data, no backend services');
+    runApp(
+      ProviderScope(
+        overrides: buildDemoOverrides(),
+        child: const App(),
+      ),
+    );
+    return;
+  }
+
+  // ── Production / dev — full initialization ─────────────────────────
 
   // Load environment config.
   // Pass --dart-define=ENV=prod for production builds;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
+import 'config/demo_config.dart';
 import 'router/app_router.dart';
 import 'theme/app_theme.dart';
 import 'providers/theme_provider.dart';
@@ -18,7 +19,7 @@ class App extends ConsumerWidget {
     final themeMode = themeModeFromPreference(themePref);
     final locale = ref.watch(localeProvider);
 
-    return MaterialApp.router(
+    Widget app = MaterialApp.router(
       title: 'Unmissed',
       debugShowCheckedModeBanner: false,
 
@@ -39,5 +40,18 @@ class App extends ConsumerWidget {
       supportedLocales: supportedLocales,
       locale: locale,
     );
+
+    // Show a subtle DEMO banner when running in demo mode.
+    if (isDemo) {
+      app = Banner(
+        message: 'DEMO',
+        location: BannerLocation.topEnd,
+        color: const Color(0xFFF59E0B),
+        child: app,
+      );
+    }
+
+    return app;
   }
 }
+

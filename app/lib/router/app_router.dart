@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
+import '../config/demo_config.dart';
 import '../config/supabase_config.dart';
+import '../providers/demo_providers.dart';
 import '../providers/contractor_provider.dart';
 import '../screens/login_screen.dart';
 import '../screens/dashboard_screen.dart';
@@ -29,20 +31,22 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 class _RouterRefreshNotifier extends ChangeNotifier {
   bool _wasAuthenticated = false;
   bool _wasOnboardingComplete = false;
-  late final StreamSubscription<sb.AuthState> _authSub;
+  StreamSubscription<sb.AuthState>? _authSub;
 
-  _RouterRefreshNotifier() {
-    // Seed from the current session.
-    _wasAuthenticated = supabase.auth.currentSession != null;
+  _RouterRefreshNotifier({bool isDemoMode = false}) {
+    if (!isDemoMode) {
+      // Seed from the current session.
+      _wasAuthenticated = supabase.auth.currentSession != null;
 
-    // React to Supabase auth changes.
-    _authSub = supabase.auth.onAuthStateChange.listen((data) {
-      final isNowAuthenticated = data.session != null;
-      if (isNowAuthenticated != _wasAuthenticated) {
-        _wasAuthenticated = isNowAuthenticated;
-        notifyListeners();
-      }
-    });
+      // React to Supabase auth changes.
+      _authSub = supabase.auth.onAuthStateChange.listen((data) {
+        final isNowAuthenticated = data.session != null;
+        if (isNowAuthenticated != _wasAuthenticated) {
+          _wasAuthenticated = isNowAuthenticated;
+          notifyListeners();
+        }
+      });
+    }
   }
 
   /// Called by the contractor provider listener when onboarding completion changes.
@@ -58,24 +62,31 @@ class _RouterRefreshNotifier extends ChangeNotifier {
 
   @override
   void dispose() {
-    _authSub.cancel();
+    _authSub?.cancel();
     super.dispose();
   }
 }
 
 final _routerRefreshProvider = Provider<_RouterRefreshNotifier>((ref) {
-  final notifier = _RouterRefreshNotifier();
+  final notifier = _RouterRefreshNotifier(isDemoMode: isDemo);
 
-  // Listen to onboarding completion changes (derived from contractor data).
-  ref.listen(isOnboardingCompleteProvider, (_, isComplete) {
-    notifier.updateOnboarding(isComplete);
-  });
+  if (isDemo) {
+    // In demo mode, refresh the router whenever the demo session changes.
+    ref.listen(demoSessionProvider, (_, __) {
+      notifier.triggerRefresh();
+    });
+  } else {
+    // Listen to onboarding completion changes (derived from contractor data).
+    ref.listen(isOnboardingCompleteProvider, (_, isComplete) {
+      notifier.updateOnboarding(isComplete);
+    });
 
-  // Also trigger a refresh when contractor data finishes loading for the
-  // first time — this unblocks the redirect that was waiting for data.
-  ref.listen(isContractorLoadedProvider, (prev, next) {
-    if (prev != next && next) notifier.triggerRefresh();
-  });
+    // Also trigger a refresh when contractor data finishes loading for the
+    // first time — this unblocks the redirect that was waiting for data.
+    ref.listen(isContractorLoadedProvider, (prev, next) {
+      if (prev != next && next) notifier.triggerRefresh();
+    });
+  }
 
   ref.onDispose(() => notifier.dispose());
 
@@ -97,18 +108,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     refreshListenable: refreshNotifier,
     redirect: (context, state) {
+      final container = ProviderScope.containerOf(context);
+      final isLoginRoute = state.matchedLocation == '/login';
+      final isOnboardingRoute = state.matchedLocation == '/onboarding';
+
+      // ── Demo mode: read auth from DemoSessionNotifier ──────────────
+      if (isDemo) {
+        final session = container.read(demoSessionProvider);
+        final isLoggedIn = session.isLoggedIn;
+        final hasCompletedOnboarding = session.hasCompletedOnboarding;
+
+        if (!isLoggedIn && !isLoginRoute) return '/login';
+        if (isLoggedIn && isLoginRoute) {
+          return hasCompletedOnboarding ? '/dashboard' : '/onboarding';
+        }
+        if (isLoggedIn && hasCompletedOnboarding && isOnboardingRoute) {
+          return '/dashboard';
+        }
+        if (isLoggedIn && !hasCompletedOnboarding && !isOnboardingRoute) {
+          return '/onboarding';
+        }
+        return null;
+      }
+
+      // ── Production: check Supabase session ─────────────────────────
       // Check Supabase session directly — the source of truth.
       final isLoggedIn = supabase.auth.currentSession != null;
 
       // Read onboarding + loading state from providers.
-      final container = ProviderScope.containerOf(context);
       final hasCompletedOnboarding =
           container.read(isOnboardingCompleteProvider);
       final isContractorLoaded =
           container.read(isContractorLoadedProvider);
-
-      final isLoginRoute = state.matchedLocation == '/login';
-      final isOnboardingRoute = state.matchedLocation == '/onboarding';
 
       // Not logged in → force login
       if (!isLoggedIn && !isLoginRoute) return '/login';

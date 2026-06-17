@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
+import '../config/demo_config.dart';
 import '../providers/auth_provider.dart';
 import '../providers/contractor_provider.dart';
 import '../config/supabase_config.dart';
@@ -110,7 +111,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     // ── Splash gate ──────────────────────────────────────────────────
     // If the user already has a persisted session, never show the login
     // form.  Display a branded splash until the router redirect fires.
-    final hasSession = supabase.auth.currentSession != null;
+    // In demo mode, Supabase is not initialized — skip session check.
+    final hasSession = !isDemo && supabase.auth.currentSession != null;
     final isContractorLoaded = ref.watch(isContractorLoadedProvider);
 
     if (hasSession) {

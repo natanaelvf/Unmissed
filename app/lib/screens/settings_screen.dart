@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
+import '../config/demo_config.dart';
 import '../providers/contractor_provider.dart';
+import '../providers/demo_providers.dart';
 import '../providers/theme_provider.dart';
 import '../models/contractor.dart';
 import '../theme/app_colors.dart';
@@ -504,6 +506,86 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
 
               const SizedBox(height: 24),
+
+              // Demo tools — only visible in demo mode
+              if (isDemo) ...[
+                _SectionHeader(title: 'DEMO TOOLS'),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: colors.bgSurface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFFF59E0B).withValues(alpha: 0.4),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'DEMO',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFFF59E0B),
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Test the full contractor experience',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: colors.textTertiary,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            ref.read(demoSessionProvider).resetToLogin();
+                          },
+                          icon: const Icon(Icons.restart_alt_rounded, size: 18),
+                          label: const Text('Reset to Login Screen'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFF59E0B),
+                            side: BorderSide(
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.5),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Takes you back to the login screen so you can test signup → onboarding → dashboard as a new contractor would see it.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colors.textTertiary,
+                              fontSize: 11,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
             ],
           ),
         );
