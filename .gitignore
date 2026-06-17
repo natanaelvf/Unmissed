@@ -75,6 +75,11 @@ Thumbs.db
 *~
 
 # ========================
+# Dev Dashboard (private, not public)
+# ========================
+frontend/
+
+# ========================
 # Database SQL (contains PII and project IDs)
 # ========================
 database/
