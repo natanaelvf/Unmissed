@@ -139,7 +139,7 @@ export async function purchaseAndAssignNumber(
   if (!baseUrl) {
     throw new Error(
       'APP_BASE_URL is not configured. Set this env var to your deployed URL ' +
-      '(e.g. https://unmissed-kzw83g.fly.dev) before purchasing numbers.'
+      '(e.g. https://your-app-name.fly.dev) before purchasing numbers.'
     );
   }
 

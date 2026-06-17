@@ -23,7 +23,7 @@ import crypto from 'crypto';
 // ─── Configuration ───────────────────────────────────────────────
 const USE_PROD = process.argv.includes('--prod');
 const BASE_URL = USE_PROD
-  ? 'https://unmissed-kzw83g.fly.dev'
+  ? (process.env.APP_BASE_URL || '')
   : 'http://localhost:3000';
 
 // These must match what's set on the server
@@ -31,7 +31,7 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
 const CALENDLY_WEBHOOK_SECRET = process.env.CALENDLY_WEBHOOK_SECRET || '';
 
 const CALLER_PHONE = '+358401234567'; // Simulated caller
-const TWILIO_NUMBER = process.env.TWILIO_PHONE_NUMBER || '+358457923822';
+const TWILIO_NUMBER = process.env.TWILIO_PHONE_NUMBER || '';
 const CALL_SID = `CA${crypto.randomBytes(16).toString('hex')}`;
 
 // ─── Helpers ─────────────────────────────────────────────────────
@@ -201,9 +201,15 @@ async function main() {
   console.log(`║ Twilio: ${TWILIO_NUMBER.padEnd(49)}║`);
   console.log(`${'╚'.padEnd(59, '═')}╝`);
 
-  if (!TWILIO_AUTH_TOKEN) {
-    console.error('\n❌ TWILIO_AUTH_TOKEN env var required for signing requests.');
-    console.error('   Run: $env:TWILIO_AUTH_TOKEN="your-token"; npx tsx scripts/e2e-smoke-test.ts');
+  const missingVars: string[] = [];
+  if (!TWILIO_AUTH_TOKEN) missingVars.push('TWILIO_AUTH_TOKEN');
+  if (!TWILIO_NUMBER) missingVars.push('TWILIO_PHONE_NUMBER');
+  if (USE_PROD && !BASE_URL) missingVars.push('APP_BASE_URL');
+
+  if (missingVars.length > 0) {
+    console.error(`\n❌ Missing required env vars: ${missingVars.join(', ')}`);
+    console.error('   Set them before running the smoke test, e.g.:');
+    console.error('   $env:TWILIO_AUTH_TOKEN="..."; $env:TWILIO_PHONE_NUMBER="..."; npx tsx scripts/e2e-smoke-test.ts');
     process.exit(1);
   }
 

@@ -38,7 +38,14 @@ export async function triggerEmergencyCall(
     return;
   }
 
-  const baseUrl = `https://unmissed-kzw83g.fly.dev`;
+  const baseUrl = env.appBaseUrl;
+  if (!baseUrl) {
+    console.error(
+      `[emergency-call] APP_BASE_URL is not configured. ` +
+      `Cannot place emergency call for lead ${lead.id}.`
+    );
+    return;
+  }
   const urgencyLabel = lead.urgency === 'emergency' ? 'emergency' : 'high';
 
   try {
