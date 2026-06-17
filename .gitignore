@@ -56,6 +56,16 @@ firebase-service-account.json
 *-adminsdk-*.json
 
 # ========================
+# Sentry
+# ========================
+sentry-wizard.exe
+
+# ========================
+# Local caches
+# ========================
+.device-ip-cache
+
+# ========================
 # OS / IDE
 # ========================
 .DS_Store

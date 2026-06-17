@@ -9,8 +9,7 @@
  *   1. Searches for an available Finnish (+358) local number via Twilio
  *   2. Purchases it (~$1/mo)
  *   3. Configures voice and SMS webhooks to point at your backend
- *   4. Prints the number — you then paste it into onboard_contractor.sql or
- *      update the contractor record in Supabase.
+ *   4. Prints the number — you then update the contractor record in Supabase.
  *
  * Required env vars:
  *   TWILIO_ACCOUNT_SID
@@ -89,10 +88,9 @@ async function main() {
     console.log('━'.repeat(50));
     console.log('\n📋 Next steps:');
     console.log(`  1. Copy the number: ${purchased.phoneNumber}`);
-    console.log('  2. Paste it into onboard_contractor.sql as v_twilio_number');
-    console.log('  3. Or update the contractor record in Supabase:');
+    console.log('  2. Update the contractor record in Supabase:');
     console.log(`     UPDATE contractors SET twilio_phone_number = '${purchased.phoneNumber}' WHERE id = '<contractor-id>';`);
-    console.log('  4. Tell the contractor to set up call forwarding to this number');
+    console.log('  3. Tell the contractor to set up call forwarding to this number');
     console.log('\n📱 Call forwarding instructions for the contractor:');
     console.log('  Elisa:  **21*' + purchased.phoneNumber.replace('+', '') + '#');
     console.log('  Telia:  **21*' + purchased.phoneNumber.replace('+', '') + '#');
