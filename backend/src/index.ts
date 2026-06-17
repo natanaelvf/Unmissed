@@ -85,11 +85,11 @@ app.use('/audio', express.static('public/audio'));
 const startedAt = new Date().toISOString();
 app.get('/health', async (_req, res) => {
   try {
-    // Verify Supabase connectivity
+    // Verify Supabase connectivity (don't expose row counts)
     const { supabase } = await import('./config/supabase');
-    const { count, error } = await supabase
+    const { error } = await supabase
       .from('contractors')
-      .select('*', { count: 'exact', head: true });
+      .select('id', { count: 'exact', head: true });
 
     res.json({
       status: 'ok',
@@ -97,7 +97,6 @@ app.get('/health', async (_req, res) => {
       startedAt,
       uptime: process.uptime(),
       database: error ? 'error' : 'connected',
-      contractors: count ?? 0,
       sentry: !!process.env.SENTRY_DSN,
     });
   } catch (err) {

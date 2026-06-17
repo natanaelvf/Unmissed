@@ -47,7 +47,9 @@ router.get('/leads', async (req: Request, res: Response) => {
       const q = search.trim();
       // Supabase doesn't support OR across columns natively in the builder,
       // so use the .or() filter
-      query = query.or(`caller_phone.ilike.%${q}%,caller_name.ilike.%${q}%`);
+      // Sanitize search input — escape PostgREST special characters to prevent filter injection
+      const sanitized = q.replace(/[%_,().]/g, '\\$&');
+      query = query.or(`caller_phone.ilike.%${sanitized}%,caller_name.ilike.%${sanitized}%`);
     }
 
     const { data: leads, error, count } = await query
