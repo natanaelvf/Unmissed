@@ -84,10 +84,7 @@ frontend/
 # ========================
 database/
 
-# ========================
-# Agent Skills and Private Files
-# ========================
-.agents/
+
 
 # Ignore all markdown files
 **/*.md
@@ -96,5 +93,9 @@ database/
 # Except README.md files
 !README.md
 !**/README.md
+
+# Ignore .agents and docs directories
+.agents/
+docs/
 
 connect-device.ps1
