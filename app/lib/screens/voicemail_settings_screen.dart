@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:missed_lead_recovery/l10n/generated/app_localizations.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/demo_config.dart';
 import '../config/supabase_config.dart';
@@ -55,16 +54,20 @@ class _VoicemailSettingsScreenState
   }
 
   /// Update voicemail config for a locale (preset or default)
-  Future<void> _updateConfig(String locale, String type,
-      {String? presetId}) async {
+  Future<void> _updateConfig(
+    String locale,
+    String type, {
+    String? presetId,
+  }) async {
     setState(() => _isSaving = true);
     try {
       final contractorAsync = ref.read(contractorProvider);
       final c = contractorAsync.valueOrNull;
       if (c == null) return;
 
-      final updatedConfig =
-          Map<String, Map<String, String>>.from(c.voicemailConfig);
+      final updatedConfig = Map<String, Map<String, String>>.from(
+        c.voicemailConfig,
+      );
 
       if (type == 'preset' && presetId != null) {
         updatedConfig[locale] = {'type': 'preset', 'preset_id': presetId};
@@ -78,17 +81,14 @@ class _VoicemailSettingsScreenState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                AppLocalizations.of(context)!.voicemailSaved),
-          ),
+          SnackBar(content: Text(AppLocalizations.of(context)!.voicemailSaved)),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -100,21 +100,24 @@ class _VoicemailSettingsScreenState
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(l10n.voicemailDelete),
-        content: Text(l10n.voicemailDeleteConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+      builder:
+          (ctx) => AlertDialog(
+            title: Text(l10n.voicemailDelete),
+            content: Text(l10n.voicemailDeleteConfirm),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: Text(
+                  l10n.voicemailDelete,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l10n.voicemailDelete,
-                style: const TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
     );
 
     if (confirmed != true) return;
@@ -127,18 +130,18 @@ class _VoicemailSettingsScreenState
         if (contractorId == null) return;
 
         // Try to remove the file (it may not exist if it was a preset)
-        await supabase.storage
-            .from('voicemails')
-            .remove(['$contractorId/$locale.mp3']);
+        await supabase.storage.from('voicemails').remove([
+          '$contractorId/$locale.mp3',
+        ]);
       }
 
       // Revert config to default
       await _updateConfig(locale, 'default');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -163,10 +166,6 @@ class _VoicemailSettingsScreenState
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (contractor) {
-          if (contractor == null) {
-            return const Center(child: Text('No contractor data'));
-          }
-
           final config = contractor.voicemailConfig;
 
           return ListView(
@@ -175,9 +174,9 @@ class _VoicemailSettingsScreenState
               // Subtitle
               Text(
                 l10n.voicemailSubtitle,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.textSecondary,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.textSecondary),
               ),
               const SizedBox(height: 20),
 
@@ -191,8 +190,9 @@ class _VoicemailSettingsScreenState
                   presetId: config[locale]?['preset_id'],
                   isSaving: _isSaving,
                   onSelectDefault: () => _updateConfig(locale, 'default'),
-                  onSelectPreset: (presetId) =>
-                      _updateConfig(locale, 'preset', presetId: presetId),
+                  onSelectPreset:
+                      (presetId) =>
+                          _updateConfig(locale, 'preset', presetId: presetId),
                   onDeleteCustom: () => _deleteCustom(locale),
                 ),
                 const SizedBox(height: 12),
@@ -253,18 +253,21 @@ class _VoicemailLocaleCard extends StatelessWidget {
                 Text(
                   localeName,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const Spacer(),
                 // Current type badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: currentType == 'custom'
-                        ? colors.accentPrimary.withValues(alpha: 0.12)
-                        : currentType == 'preset'
+                    color:
+                        currentType == 'custom'
+                            ? colors.accentPrimary.withValues(alpha: 0.12)
+                            : currentType == 'preset'
                             ? colors.urgencyHigh.withValues(alpha: 0.12)
                             : colors.textTertiary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
@@ -273,14 +276,15 @@ class _VoicemailLocaleCard extends StatelessWidget {
                     currentType == 'custom'
                         ? l10n.voicemailTypeCustom
                         : currentType == 'preset'
-                            ? l10n.voicemailTypePreset
-                            : l10n.voicemailTypeDefault,
+                        ? l10n.voicemailTypePreset
+                        : l10n.voicemailTypeDefault,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: currentType == 'custom'
-                          ? colors.accentPrimary
-                          : currentType == 'preset'
+                      color:
+                          currentType == 'custom'
+                              ? colors.accentPrimary
+                              : currentType == 'preset'
                               ? colors.urgencyHigh
                               : colors.textTertiary,
                     ),
@@ -323,8 +327,11 @@ class _VoicemailLocaleCard extends StatelessWidget {
                     isSelected: true,
                     isEnabled: !isSaving,
                     trailing: IconButton(
-                      icon: Icon(Icons.delete_outline,
-                          color: colors.accentDanger, size: 20),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: colors.accentDanger,
+                        size: 20,
+                      ),
                       onPressed: isSaving ? null : onDeleteCustom,
                       tooltip: l10n.voicemailDelete,
                     ),
@@ -335,7 +342,8 @@ class _VoicemailLocaleCard extends StatelessWidget {
                     label: l10n.voicemailTypeCustom,
                     icon: Icons.mic,
                     isSelected: false,
-                    isEnabled: false, // Requires recording — can't tap to select
+                    isEnabled:
+                        false, // Requires recording — can't tap to select
                     subtitle: l10n.voicemailRecord,
                     onTap: () {},
                   ),
@@ -380,13 +388,13 @@ class _TypeOption extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? colors.accentPrimary.withValues(alpha: 0.08)
-                : Colors.transparent,
+            color:
+                isSelected
+                    ? colors.accentPrimary.withValues(alpha: 0.08)
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color:
-                  isSelected ? colors.accentPrimary : colors.borderSubtle,
+              color: isSelected ? colors.accentPrimary : colors.borderSubtle,
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -395,8 +403,7 @@ class _TypeOption extends StatelessWidget {
               Icon(
                 icon,
                 size: 20,
-                color:
-                    isSelected ? colors.accentPrimary : colors.textTertiary,
+                color: isSelected ? colors.accentPrimary : colors.textTertiary,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -409,9 +416,10 @@ class _TypeOption extends StatelessWidget {
                         fontSize: 14,
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected
-                            ? colors.accentPrimary
-                            : colors.textPrimary,
+                        color:
+                            isSelected
+                                ? colors.accentPrimary
+                                : colors.textPrimary,
                       ),
                     ),
                     if (subtitle != null)

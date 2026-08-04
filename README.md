@@ -109,22 +109,10 @@ The entire flow happens automatically. You see the result: a booked job on your 
 
 ---
 
-## Architecture
-
-```
-Lead calls → Twilio (missed call detection) → Node.js backend → Supabase
-                                                    ↓
-                                              SMS sequence
-                                              (consent → issue → urgency → name → booking link)
-                                                    ↓
-                                              Calendly booking → confirmation → satisfaction follow-up
-```
-
 ## Documentation
 
 - **[Privacy Policy](docs/privacy-policy.md)** — GDPR-compliant privacy policy template.
 - **[DPA Template](docs/dpa-template.md)** — Data Processing Agreement for contractors.
-- **[Onboarding Checklist](docs/onboarding-checklist.md)** — Step-by-step contractor onboarding guide.
 
 ---
 

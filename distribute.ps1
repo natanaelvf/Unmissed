@@ -30,74 +30,79 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$AppDir    = Join-Path $PSScriptRoot "app"
-$Pubspec   = Join-Path $AppDir "pubspec.yaml"
-$AppId     = "1:710716776452:android:0e5337493438eff1471551"
-$Project   = "unmissed-project"
-$Testers   = "natanaelvf@gmail.com"
-$ServiceAccount = Join-Path $AppDir "android" "unmissed-project-firebase-adminsdk.json"
+$AppDir = Join-Path $PSScriptRoot "app"
+$Pubspec = Join-Path $AppDir "pubspec.yaml"
+$AppId = "1:710716776452:android:0e5337493438eff1471551"
+$Project = "unmissed-project"
+$Testers = "natanaelvf@gmail.com, natasnaelferreira@gmail.com, Teppoauvinen844@gmail.com"
+$ServiceAccount = Join-Path $AppDir "android\unmissed-project-firebase-adminsdk.json"
 
-# ── Helpers ──────────────────────────────────────────────────────────
-function Write-Step($msg) { Write-Host "`n▸ $msg" -ForegroundColor Cyan }
-function Write-Ok($msg)   { Write-Host "  ✓ $msg" -ForegroundColor Green }
-function Write-Err($msg)  { Write-Host "  ✗ $msg" -ForegroundColor Red; exit 1 }
+# -- Helpers ----------------------------------------------------------
+function Write-Step($msg) { Write-Host "`n[>] $msg" -ForegroundColor Cyan }
+function Write-Ok($msg) { Write-Host "  [OK] $msg" -ForegroundColor Green }
+function Write-Err($msg) { Write-Host "  [ERROR] $msg" -ForegroundColor Red; exit 1 }
 
-# ── Pre-flight checks ───────────────────────────────────────────────
+# -- Pre-flight checks -----------------------------------------------
 Write-Step "Pre-flight checks"
 
 if (-not (Get-Command flutter -ErrorAction SilentlyContinue)) { Write-Err "flutter not found in PATH" }
 if (-not (Get-Command firebase -ErrorAction SilentlyContinue)) { Write-Err "firebase CLI not found in PATH" }
-if (-not (Test-Path $Pubspec))        { Write-Err "pubspec.yaml not found at $Pubspec" }
+if (-not (Test-Path $Pubspec)) { Write-Err "pubspec.yaml not found at $Pubspec" }
 if (-not (Test-Path $ServiceAccount)) { Write-Err "Service account JSON not found at $ServiceAccount" }
 
 Write-Ok "All tools and files present"
 
-# ── Version bump ─────────────────────────────────────────────────────
+# -- Version bump -----------------------------------------------------
 $content = Get-Content $Pubspec -Raw
 if ($content -match 'version:\s*(\d+\.\d+\.\d+)\+(\d+)') {
-    $semver    = $Matches[1]
-    $buildNum  = [int]$Matches[2]
-} elseif ($content -match 'version:\s*(\d+\.\d+\.\d+)') {
-    $semver    = $Matches[1]
-    $buildNum  = 0
-} else {
+    $semver = $Matches[1]
+    $buildNum = [int]$Matches[2]
+}
+elseif ($content -match 'version:\s*(\d+\.\d+\.\d+)') {
+    $semver = $Matches[1]
+    $buildNum = 0
+}
+else {
     Write-Err "Could not parse version from pubspec.yaml"
 }
 
 if (-not $SkipBump) {
     Write-Step "Bumping build number"
     $newBuild = $buildNum + 1
-    $oldVersion = if ($buildNum -gt 0) { "$semver+$buildNum" } else { $semver }
+    $oldVersion = $(if ($buildNum -gt 0) { "$semver+$buildNum" } else { $semver })
     $newVersion = "$semver+$newBuild"
     $content = $content -replace "version:\s*$([regex]::Escape($oldVersion))", "version: $newVersion"
     Set-Content -Path $Pubspec -Value $content -NoNewline
-    Write-Ok "$oldVersion → $newVersion"
-} else {
-    $newVersion = if ($buildNum -gt 0) { "$semver+$buildNum" } else { $semver }
-    Write-Step "Skipping bump — staying at $newVersion"
+    Write-Ok "$oldVersion -> $newVersion"
+}
+else {
+    $newVersion = $(if ($buildNum -gt 0) { "$semver+$buildNum" } else { $semver })
+    Write-Step "Skipping bump - staying at $newVersion"
 }
 
-# ── Build release APK ────────────────────────────────────────────────
+# -- Build release APK ------------------------------------------------
 Write-Step "Building release APK (ENV=prod)"
 Push-Location $AppDir
 try {
     flutter build apk --release --dart-define=ENV=prod
     if ($LASTEXITCODE -ne 0) { Write-Err "flutter build failed" }
-} finally {
+}
+finally {
     Pop-Location
 }
 
-$ApkPath = Join-Path $AppDir "build" "app" "outputs" "flutter-apk" "app-release.apk"
+$ApkPath = Join-Path $AppDir "build\app\outputs\flutter-apk\app-release.apk"
 if (-not (Test-Path $ApkPath)) { Write-Err "APK not found at $ApkPath" }
 
 $apkSize = [math]::Round((Get-Item $ApkPath).Length / 1MB, 1)
-Write-Ok "APK built: $ApkPath ($apkSize MB)"
+Write-Ok "APK built: $ApkPath (${apkSize} MB)"
 
-# ── Upload ───────────────────────────────────────────────────────────
+# -- Upload -----------------------------------------------------------
 if ($DryRun) {
-    Write-Step "DRY RUN — skipping upload"
+    Write-Step "DRY RUN - skipping upload"
     Write-Ok "APK ready at $ApkPath"
-} else {
+}
+else {
     Write-Step "Uploading to Firebase App Distribution"
 
     # Authenticate via service account
@@ -121,18 +126,19 @@ if ($DryRun) {
     Write-Ok "Uploaded successfully"
 }
 
-# ── Summary ──────────────────────────────────────────────────────────
+# -- Summary ----------------------------------------------------------
 Write-Host ""
-Write-Host "┌─────────────────────────────────────────┐" -ForegroundColor DarkGray
-Write-Host "│  Distribution Summary                   │" -ForegroundColor DarkGray
-Write-Host "├─────────────────────────────────────────┤" -ForegroundColor DarkGray
-Write-Host "│  Version:  $newVersion" -ForegroundColor White
-Write-Host "│  APK:      $apkSize MB" -ForegroundColor White
-Write-Host "│  Testers:  $Testers" -ForegroundColor White
+Write-Host "+-----------------------------------------+" -ForegroundColor DarkGray
+Write-Host "|  Distribution Summary                   |" -ForegroundColor DarkGray
+Write-Host "+-----------------------------------------+" -ForegroundColor DarkGray
+Write-Host "|  Version:  $newVersion" -ForegroundColor White
+Write-Host "|  APK:      ${apkSize} MB" -ForegroundColor White
+Write-Host "|  Testers:  $Testers" -ForegroundColor White
 if ($DryRun) {
-Write-Host "│  Status:   DRY RUN (not uploaded)" -ForegroundColor Yellow
-} else {
-Write-Host "│  Status:   ✓ Uploaded" -ForegroundColor Green
+    Write-Host "|  Status:   DRY RUN (not uploaded)" -ForegroundColor Yellow
 }
-Write-Host "└─────────────────────────────────────────┘" -ForegroundColor DarkGray
+else {
+    Write-Host "|  Status:   [OK] Uploaded" -ForegroundColor Green
+}
+Write-Host "+-----------------------------------------+" -ForegroundColor DarkGray
 Write-Host ""
