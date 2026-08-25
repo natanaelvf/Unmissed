@@ -6,6 +6,7 @@ import '../config/demo_config.dart';
 import '../config/supabase_config.dart';
 import '../providers/contractor_provider.dart';
 import '../theme/app_colors.dart';
+import '../widgets/voicemail_recorder_sheet.dart';
 
 /// Voicemail settings screen — configure per-language voicemail greetings.
 /// Accessible from Settings > Voicemail Greetings.
@@ -51,6 +52,24 @@ class _VoicemailSettingsScreenState
   /// Get the voicemail type for a locale from current config
   String _getType(Map<String, Map<String, String>> config, String locale) {
     return config[locale]?['type'] ?? 'default';
+  }
+
+  /// Open the recording bottom sheet for a locale.
+  Future<void> _openRecorder(String locale) async {
+    final uploaded = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => VoicemailRecorderSheet(locale: locale),
+    );
+    // Sheet already updates the provider; nothing extra needed.
+    if (uploaded == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.voicemailUploadSuccess),
+        ),
+      );
+    }
   }
 
   /// Update voicemail config for a locale (preset or default)
@@ -194,6 +213,7 @@ class _VoicemailSettingsScreenState
                       (presetId) =>
                           _updateConfig(locale, 'preset', presetId: presetId),
                   onDeleteCustom: () => _deleteCustom(locale),
+                  onRecord: () => _openRecorder(locale),
                 ),
                 const SizedBox(height: 12),
               ],
@@ -216,6 +236,7 @@ class _VoicemailLocaleCard extends StatelessWidget {
   final VoidCallback onSelectDefault;
   final void Function(String presetId) onSelectPreset;
   final VoidCallback onDeleteCustom;
+  final VoidCallback onRecord;
 
   const _VoicemailLocaleCard({
     required this.locale,
@@ -227,6 +248,7 @@ class _VoicemailLocaleCard extends StatelessWidget {
     required this.onSelectDefault,
     required this.onSelectPreset,
     required this.onDeleteCustom,
+    required this.onRecord,
   });
 
   @override
@@ -342,10 +364,9 @@ class _VoicemailLocaleCard extends StatelessWidget {
                     label: l10n.voicemailTypeCustom,
                     icon: Icons.mic,
                     isSelected: false,
-                    isEnabled:
-                        false, // Requires recording — can't tap to select
+                    isEnabled: !isSaving,
                     subtitle: l10n.voicemailRecord,
-                    onTap: () {},
+                    onTap: isSaving ? () {} : onRecord,
                   ),
               ],
             ),

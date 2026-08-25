@@ -51,6 +51,12 @@ dependencies:
   # Locale persistence
   shared_preferences: ^2.3.4
 
+  # Audio recording & playback (voicemail custom greetings)
+  record: ^5.2.0
+  just_audio: ^0.9.42
+  permission_handler: ^11.3.1
+  path_provider: ^2.1.4
+
 dev_dependencies:
   sentry_dart_plugin: ^3.4.0
   flutter_test:
