@@ -7,7 +7,9 @@ export enum LeadStatus {
   QualifyingIssue = 'qualifying_issue',
   QualifyingUrgency = 'qualifying_urgency',
   QualifyingName = 'qualifying_name',
+  QualifyingEmail = 'qualifying_email',      // New: asking caller for email
   BookingSent = 'booking_sent',
+  CallbackPending = 'callback_pending',      // New: no booking enabled, callback promised
   Booked = 'booked',
   Completed = 'completed',
   FollowedUp = 'followed_up',
@@ -39,7 +41,7 @@ export interface Contractor {
   contact_phone: string;
   twilio_phone_number: string;
   number_setup_type: NumberSetupType;
-  calendly_url: string;
+  // calendly_url removed — column kept in DB for backward compat only
   trade_type: string;
   default_job_value: number;
   urgency_threshold_urgent_min: number;
@@ -56,6 +58,14 @@ export interface Contractor {
   sms_used_this_month: number;
   stripe_customer_id: string | null;
   fcm_token: string | null;
+  // Google Calendar integration
+  calendar_booking_enabled: boolean;
+  google_calendar_id: string | null;
+  google_access_token: string | null;   // encrypted
+  google_refresh_token: string | null;  // encrypted
+  google_token_expiry: string | null;
+  google_connected_at: string | null;
+  booking_slot_duration_min: number;
   created_at: string;
   updated_at: string;
 }
@@ -65,6 +75,7 @@ export interface Lead {
   contractor_id: string;
   caller_phone: string;
   caller_name: string | null;
+  caller_email: string | null;       // New: collected in QualifyingEmail step
   issue_description: string | null;
   urgency: Urgency;
   email: string | null;
@@ -73,7 +84,11 @@ export interface Lead {
   consent_given: boolean;
   consent_given_at: string | null;
   booking_time: string | null;
-  calendly_event_id: string | null;
+  calendly_event_id: string | null;  // Legacy — kept for backward compat
+  calendar_event_id: string | null;  // New: native Google Calendar event ID
+  calendar_event_link: string | null; // New: htmlLink to Google Calendar event
+  booking_token: string | null;       // New: JWT for booking page
+  booking_token_expires_at: string | null;
   dnr_alert_sent: boolean;
   dnr_alert_sent_at: string | null;
   estimated_value: number | null;

@@ -27,7 +27,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   late TextEditingController _urgentThresholdController;
   late TextEditingController _normalThresholdController;
   late TextEditingController _defaultValueController;
-  late TextEditingController _calendlyController;
   late List<int> _workingDays;
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
@@ -44,7 +43,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _urgentThresholdController = TextEditingController();
     _normalThresholdController = TextEditingController();
     _defaultValueController = TextEditingController();
-    _calendlyController = TextEditingController();
     _workingDays = [1, 2, 3, 4, 5];
     _startTime = const TimeOfDay(hour: 8, minute: 0);
     _endTime = const TimeOfDay(hour: 18, minute: 0);
@@ -61,7 +59,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _normalThresholdController.text = c.urgencyThresholdNormalMin.toString();
     _defaultValueController.text =
         c.defaultJobValue?.toInt().toString() ?? '350';
-    _calendlyController.text = c.calendlyUrl ?? '';
     _workingDays = List.from(c.workingDays);
 
     final startParts = c.workingHoursStart.split(':');
@@ -85,7 +82,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     _urgentThresholdController.dispose();
     _normalThresholdController.dispose();
     _defaultValueController.dispose();
-    _calendlyController.dispose();
     super.dispose();
   }
 
@@ -109,7 +105,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             int.tryParse(_normalThresholdController.text) ?? 1440,
         'default_job_value':
             double.tryParse(_defaultValueController.text) ?? 350,
-        'calendly_url': _calendlyController.text,
       });
 
       if (mounted) {
@@ -321,15 +316,175 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       keyboardType: TextInputType.number,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _FormField(
-                      label: l10n.settingsCalendlyUrl,
-                      controller: _calendlyController,
-                      keyboardType: TextInputType.url,
-                    ),
-                  ),
                 ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Calendar Booking
+              _SectionHeader(title: 'CALENDAR BOOKING'),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colors.bgSurface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: colors.borderSubtle),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Google Calendar connection status
+                    if (c.googleConnectedAt != null) ...[
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colors.accentSuccess.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(Icons.calendar_month_rounded,
+                                color: colors.accentSuccess, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Google Calendar connected',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.accentSuccess,
+                                  ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              await ref.read(contractorProvider.notifier)
+                                  .updateSettings({'calendar_booking_enabled': false});
+                              // TODO: call DELETE /auth/google-calendar/disconnect
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: colors.textTertiary,
+                              padding: EdgeInsets.zero,
+                            ),
+                            child: const Text('Disconnect', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Enable toggle
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Enable calendar booking',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text('Callers will receive a link to book a time slot',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: colors.textTertiary)),
+                              ],
+                            ),
+                          ),
+                          Switch(
+                            value: c.calendarBookingEnabled,
+                            activeColor: colors.accentPrimary,
+                            onChanged: (val) async {
+                              await ref.read(contractorProvider.notifier)
+                                  .updateSettings({'calendar_booking_enabled': val});
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Slot duration picker
+                      Text('SLOT DURATION',
+                          style: Theme.of(context).textTheme.labelSmall),
+                      const SizedBox(height: 6),
+                      DropdownButtonFormField<int>(
+                        value: [15, 30, 45, 60].contains(c.bookingSlotDurationMin)
+                            ? c.bookingSlotDurationMin
+                            : 30,
+                        decoration: InputDecoration(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 10),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: colors.borderSubtle),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: colors.borderSubtle),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 15, child: Text('15 minutes')),
+                          DropdownMenuItem(value: 30, child: Text('30 minutes')),
+                          DropdownMenuItem(value: 45, child: Text('45 minutes')),
+                          DropdownMenuItem(value: 60, child: Text('60 minutes')),
+                        ],
+                        onChanged: (val) async {
+                          if (val == null) return;
+                          await ref.read(contractorProvider.notifier)
+                              .updateSettings({'booking_slot_duration_min': val});
+                        },
+                      ),
+                    ] else ...[
+                      // Not connected
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: colors.accentPrimary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Icon(Icons.calendar_month_rounded,
+                                color: colors.accentPrimary, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Google Calendar',
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                          fontWeight: FontWeight.w600)),
+                                const SizedBox(height: 2),
+                                Text('Connect to enable calendar booking',
+                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                          color: colors.textTertiary)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            // Opens OAuth flow in external browser
+                            // The backend redirects to Google and back
+                            // TODO: use url_launcher or in-app browser
+                          },
+                          icon: const Icon(Icons.link_rounded, size: 18),
+                          label: const Text('Connect Google Calendar'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: colors.accentPrimary,
+                            side: BorderSide(
+                              color: colors.accentPrimary.withValues(alpha: 0.5),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
 
               const SizedBox(height: 24),

@@ -23,7 +23,13 @@ router.get('/contractor/settings', async (req: Request, res: Response) => {
     }
 
     // Strip sensitive fields from the response
-    const { stripe_customer_id, fcm_token, ...safe } = contractor;
+    const {
+      stripe_customer_id,
+      fcm_token,
+      google_access_token,
+      google_refresh_token,
+      ...safe
+    } = contractor;
 
     res.json(safe);
   } catch (err) {
@@ -42,9 +48,10 @@ router.patch('/contractor/settings', async (req: Request, res: Response) => {
   const updates = req.body as Record<string, unknown>;
 
   // Whitelist editable fields
+  // Note: calendly_url removed — use /api/calendar/settings for calendar config
   const allowedFields = [
     'business_name', 'contact_name', 'contact_phone',
-    'calendly_url', 'trade_type', 'default_job_value',
+    'trade_type', 'default_job_value',
     'urgency_threshold_urgent_min', 'urgency_threshold_normal_min',
     'working_hours_start', 'working_hours_end', 'working_days',
     'after_hours_emergency_policy', 'after_hours_ring',
@@ -52,6 +59,9 @@ router.patch('/contractor/settings', async (req: Request, res: Response) => {
     'caller_lookup_enabled',
     'notification_preferences',
     'voicemail_config',
+    // Calendar booking settings
+    'calendar_booking_enabled',
+    'booking_slot_duration_min',
   ];
 
   const filtered: Record<string, unknown> = {};
@@ -66,16 +76,16 @@ router.patch('/contractor/settings', async (req: Request, res: Response) => {
     return;
   }
 
-  filtered['updated_at'] = new Date().toISOString();
-
-  // Validate Calendly URL if provided
-  if (filtered['calendly_url']) {
-    const url = String(filtered['calendly_url']);
-    if (!url.startsWith('https://calendly.com/')) {
-      res.status(400).json({ error: 'Calendly URL must start with https://calendly.com/' });
+  // Validate slot duration if provided
+  if (filtered['booking_slot_duration_min'] !== undefined) {
+    const dur = Number(filtered['booking_slot_duration_min']);
+    if (![15, 30, 45, 60].includes(dur)) {
+      res.status(400).json({ error: 'booking_slot_duration_min must be 15, 30, 45, or 60' });
       return;
     }
   }
+
+  filtered['updated_at'] = new Date().toISOString();
 
   try {
     const { data: contractor, error } = await supabase
@@ -92,7 +102,13 @@ router.patch('/contractor/settings', async (req: Request, res: Response) => {
     }
 
     // Strip sensitive fields
-    const { stripe_customer_id, fcm_token, ...safe } = contractor;
+    const {
+      stripe_customer_id,
+      fcm_token,
+      google_access_token,
+      google_refresh_token,
+      ...safe
+    } = contractor;
     res.json(safe);
   } catch (err) {
     console.error('[api] Contractor update error:', err);

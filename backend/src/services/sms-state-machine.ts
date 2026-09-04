@@ -1,9 +1,11 @@
 import { supabase } from '../config/supabase';
+import { env } from '../config/env';
 import { Lead, LeadStatus, Contractor, Locale } from '../types';
 import { sendSms } from './twilio';
 import { sendPushNotification } from './notifications';
 import { triggerEmergencyCall } from './emergency-call';
 import { recordLeadEvent } from './lead-events';
+import { generateBookingToken } from '../utils/booking-token';
 
 // --- SMS Templates (bilingual: Finnish + English) ---
 // Finnish translations should be reviewed by a native speaker before launch.
@@ -13,10 +15,12 @@ type TemplateSet = {
   askIssue: (businessName: string) => string;
   askUrgency: () => string;
   askName: () => string;
-  bookingLink: (businessName: string, calendlyUrl: string, urgency?: string) => string;
+  askEmail: () => string;
+  bookingLink: (businessName: string, bookingUrl: string, urgency?: string) => string;
   bookingConfirmation: (businessName: string, bookingTime: string) => string;
   satisfactionFollowup: (businessName: string) => string;
   noConsent: () => string;
+  callbackPending: (businessName: string) => string;
 };
 
 const TEMPLATES_EN: TemplateSet = {
@@ -32,17 +36,20 @@ const TEMPLATES_EN: TemplateSet = {
   askName: () =>
     `Thanks! What's your name so we can address you properly?`,
 
-  bookingLink: (businessName, calendlyUrl, urgency) => {
+  askEmail: () =>
+    `Last step — what's your email address? We'll send you a booking confirmation. (Reply SKIP to skip)`,
+
+  bookingLink: (businessName, bookingUrl, urgency) => {
     switch (urgency) {
       case 'emergency':
       case 'high':
-        return `⚡ ${businessName} will try to call you back ASAP. In the meantime, book the earliest available slot: ${calendlyUrl}\nWe'll confirm once it's booked!`;
+        return `⚡ ${businessName} will try to call you back ASAP. In the meantime, book the earliest available slot: ${bookingUrl}\nWe'll confirm once it's booked!`;
       case 'medium':
-        return `Thanks! Please book a time within the next 2-3 days with ${businessName}: ${calendlyUrl}\nWe'll confirm once it's booked!`;
+        return `Thanks! Please book a time within the next 2-3 days with ${businessName}: ${bookingUrl}\nWe'll confirm once it's booked!`;
       case 'low':
-        return `Thanks! Book a time this week with ${businessName}: ${calendlyUrl}\nWe'll confirm once it's booked!`;
+        return `Thanks! Book a time this week with ${businessName}: ${bookingUrl}\nWe'll confirm once it's booked!`;
       default:
-        return `Thanks! Here's a link to book a time with ${businessName}: ${calendlyUrl}\nWe'll confirm once it's booked!`;
+        return `Thanks! Here's a link to book a time with ${businessName}: ${bookingUrl}\nWe'll confirm once it's booked!`;
     }
   },
 
@@ -54,6 +61,9 @@ const TEMPLATES_EN: TemplateSet = {
 
   noConsent: () =>
     `No problem! We won't text you again. If you need help in the future, give us a call.`,
+
+  callbackPending: (businessName) =>
+    `Thank you! ${businessName} will call you back as soon as possible.`,
 };
 
 const TEMPLATES_FI: TemplateSet = {
@@ -69,17 +79,20 @@ const TEMPLATES_FI: TemplateSet = {
   askName: () =>
     `Kiitos! Millä nimellä voimme kutsua sinua?`,
 
-  bookingLink: (businessName, calendlyUrl, urgency) => {
+  askEmail: () =>
+    `Viimeinen vaihe — mikä on sähköpostiosoitteesi? Lähetämme sinulle varausvahvistuksen. (Vastaa OHITA ohittaaksesi)`,
+
+  bookingLink: (businessName, bookingUrl, urgency) => {
     switch (urgency) {
       case 'emergency':
       case 'high':
-        return `⚡ ${businessName} yrittää soittaa sinulle takaisin pian. Varaa ensimmäinen vapaa aika: ${calendlyUrl}\nVahvistamme kun varaus on tehty!`;
+        return `⚡ ${businessName} yrittää soittaa sinulle takaisin pian. Varaa ensimmäinen vapaa aika: ${bookingUrl}\nVahvistamme kun varaus on tehty!`;
       case 'medium':
-        return `Kiitos! Varaa aika seuraavan 2-3 päivän sisällä yrityksen ${businessName} kanssa: ${calendlyUrl}\nVahvistamme kun varaus on tehty!`;
+        return `Kiitos! Varaa aika seuraavan 2-3 päivän sisällä yrityksen ${businessName} kanssa: ${bookingUrl}\nVahvistamme kun varaus on tehty!`;
       case 'low':
-        return `Kiitos! Varaa sinulle sopiva aika tämän viikon aikana yrityksen ${businessName} kanssa: ${calendlyUrl}\nVahvistamme kun varaus on tehty!`;
+        return `Kiitos! Varaa sinulle sopiva aika tämän viikon aikana yrityksen ${businessName} kanssa: ${bookingUrl}\nVahvistamme kun varaus on tehty!`;
       default:
-        return `Kiitos! Tässä linkki ajanvaraukseen yrityksen ${businessName} kanssa: ${calendlyUrl}\nVahvistamme kun varaus on tehty!`;
+        return `Kiitos! Tässä linkki ajanvaraukseen yrityksen ${businessName} kanssa: ${bookingUrl}\nVahvistamme kun varaus on tehty!`;
     }
   },
 
@@ -91,6 +104,9 @@ const TEMPLATES_FI: TemplateSet = {
 
   noConsent: () =>
     `Ei hätää! Emme lähetä sinulle enää viestejä. Jos tarvitset apua tulevaisuudessa, soita meille.`,
+
+  callbackPending: (businessName) =>
+    `Kiitos! ${businessName} soittaa sinulle takaisin mahdollisimman pian.`,
 };
 
 const TEMPLATES_PT: TemplateSet = {
@@ -106,17 +122,20 @@ const TEMPLATES_PT: TemplateSet = {
   askName: () =>
     `Obrigado! Qual é o seu nome?`,
 
-  bookingLink: (businessName, calendlyUrl, urgency) => {
+  askEmail: () =>
+    `Último passo — qual é o seu endereço de e-mail? Enviaremos uma confirmação da sua reserva. (Responda PULAR para ignorar)`,
+
+  bookingLink: (businessName, bookingUrl, urgency) => {
     switch (urgency) {
       case 'emergency':
       case 'high':
-        return `⚡ ${businessName} vai tentar ligar-lhe de volta em breve. Agende o primeiro horário disponível: ${calendlyUrl}\nConfirmaremos assim que o agendamento for feito!`;
+        return `⚡ ${businessName} vai tentar ligar-lhe de volta em breve. Agende o primeiro horário disponível: ${bookingUrl}\nConfirmaremos assim que o agendamento for feito!`;
       case 'medium':
-        return `Obrigado! Agende um horário nos próximos 2-3 dias com ${businessName}: ${calendlyUrl}\nConfirmaremos assim que o agendamento for feito!`;
+        return `Obrigado! Agende um horário nos próximos 2-3 dias com ${businessName}: ${bookingUrl}\nConfirmaremos assim que o agendamento for feito!`;
       case 'low':
-        return `Obrigado! Agende um horário esta semana com ${businessName}: ${calendlyUrl}\nConfirmaremos assim que o agendamento for feito!`;
+        return `Obrigado! Agende um horário esta semana com ${businessName}: ${bookingUrl}\nConfirmaremos assim que o agendamento for feito!`;
       default:
-        return `Obrigado! Aqui está o link para agendar um horário com ${businessName}: ${calendlyUrl}\nConfirmaremos assim que o agendamento for feito!`;
+        return `Obrigado! Aqui está o link para agendar um horário com ${businessName}: ${bookingUrl}\nConfirmaremos assim que o agendamento for feito!`;
     }
   },
 
@@ -128,6 +147,9 @@ const TEMPLATES_PT: TemplateSet = {
 
   noConsent: () =>
     `Sem problemas! Não enviaremos mais mensagens. Se precisar de ajuda no futuro, ligue para nós.`,
+
+  callbackPending: (businessName) =>
+    `Obrigado! ${businessName} vai ligar-lhe de volta o mais rápido possível.`,
 };
 
 /**
@@ -249,6 +271,59 @@ async function refreshLead(leadId: string): Promise<Lead | null> {
 }
 
 /**
+ * Parse and validate an email address from SMS text.
+ * Returns the email string if valid, null otherwise.
+ */
+function parseEmail(text: string): string | null {
+  const trimmed = text.trim().toLowerCase();
+  // Skip keywords
+  const skipWords = ['skip', 'ohita', 'pular', 'no', 'none', '-'];
+  if (skipWords.includes(trimmed)) return null;
+  // Basic email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(trimmed) ? trimmed : null;
+}
+
+/**
+ * Dispatch the booking link or callback pending message after collecting email.
+ * This is the terminal step of the qualification flow.
+ */
+async function dispatchBooking(
+  lead: Lead,
+  contractor: Contractor,
+  fromNumber: string,
+  T: TemplateSet
+): Promise<void> {
+  if (contractor.calendar_booking_enabled && contractor.google_refresh_token) {
+    // Generate a signed booking token (JWT, 48h TTL)
+    const token = generateBookingToken(lead.id, contractor.id);
+    const bookingUrl = `${env.appBaseUrl}/book/${token}`;
+    const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+
+    // Store token on lead
+    await supabase
+      .from('leads')
+      .update({
+        booking_token: token,
+        booking_token_expires_at: expiresAt,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', lead.id);
+
+    const msg = T.bookingLink(contractor.business_name, bookingUrl, lead.urgency);
+    await sendAndRecord(lead, fromNumber, msg);
+    await updateLeadStatus(lead.id, LeadStatus.BookingSent);
+    recordLeadEvent(lead.id, 'booking_link_sent', { bookingUrl });
+  } else {
+    // Calendar booking not enabled: promise a callback
+    const msg = T.callbackPending(contractor.business_name);
+    await sendAndRecord(lead, fromNumber, msg);
+    await updateLeadStatus(lead.id, LeadStatus.CallbackPending);
+    recordLeadEvent(lead.id, 'callback_pending', {});
+  }
+}
+
+/**
  * Main SMS state machine — processes inbound SMS based on lead's current status.
  * Re-fetches the lead at the start to avoid race conditions with stale data.
  */
@@ -362,7 +437,7 @@ export async function handleInboundSms(
       break;
     }
 
-    // --- Qualifying: collecting name (fix #22: name collection step) ---
+    // --- Qualifying: collecting name ---
     case LeadStatus.QualifyingName: {
       // Store the caller name
       await supabase
@@ -370,19 +445,72 @@ export async function handleInboundSms(
         .update({ caller_name: body, updated_at: new Date().toISOString() })
         .eq('id', lead.id);
 
-      // Send urgency-aware booking link
-      const msg = T.bookingLink(contractor.business_name, contractor.calendly_url, lead.urgency);
-      await sendAndRecord(lead, fromNumber, msg);
-      await updateLeadStatus(lead.id, LeadStatus.BookingSent);
       recordLeadEvent(lead.id, 'name_identified', { name: body });
-      recordLeadEvent(lead.id, 'booking_link_sent', { calendlyUrl: contractor.calendly_url });
+
+      // Ask for email (new step)
+      const msg = T.askEmail();
+      await sendAndRecord(lead, fromNumber, msg);
+      await updateLeadStatus(lead.id, LeadStatus.QualifyingEmail);
       break;
     }
 
-    // --- Booking sent: waiting for Calendly webhook, but user might reply ---
+    // --- Qualifying: collecting email (new step) ---
+    case LeadStatus.QualifyingEmail: {
+      const email = parseEmail(body);
+
+      if (email) {
+        // Store valid email
+        await supabase
+          .from('leads')
+          .update({ caller_email: email, updated_at: new Date().toISOString() })
+          .eq('id', lead.id);
+        recordLeadEvent(lead.id, 'email_provided', { email });
+      } else {
+        // Any non-email reply (skip, invalid, etc.) — proceed without email
+        recordLeadEvent(lead.id, 'email_skipped', { reply: body });
+      }
+
+      // Re-fetch lead to get latest caller_name + urgency before dispatching
+      const freshLead = await refreshLead(lead.id);
+      if (!freshLead) break;
+
+      await dispatchBooking(freshLead, contractor, fromNumber, T);
+      break;
+    }
+
+    // --- Booking sent: re-send the booking link if they reply ---
     case LeadStatus.BookingSent: {
-      // Re-send the booking link if they reply while waiting
-      const msg = T.bookingLink(contractor.business_name, contractor.calendly_url, lead.urgency);
+      // Re-send the stored booking link (or re-generate if expired)
+      let bookingUrl: string | null = lead.booking_token
+        ? `${env.appBaseUrl}/book/${lead.booking_token}`
+        : null;
+
+      // If token expired or missing, re-generate
+      if (
+        !bookingUrl ||
+        (lead.booking_token_expires_at && new Date(lead.booking_token_expires_at) < new Date())
+      ) {
+        const token = generateBookingToken(lead.id, contractor.id);
+        const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+        await supabase
+          .from('leads')
+          .update({
+            booking_token: token,
+            booking_token_expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', lead.id);
+        bookingUrl = `${env.appBaseUrl}/book/${token}`;
+      }
+
+      const msg = T.bookingLink(contractor.business_name, bookingUrl, lead.urgency);
+      await sendAndRecord(lead, fromNumber, msg);
+      break;
+    }
+
+    // --- Callback pending: remind them a callback is coming ---
+    case LeadStatus.CallbackPending: {
+      const msg = T.callbackPending(contractor.business_name);
       await sendAndRecord(lead, fromNumber, msg);
       break;
     }

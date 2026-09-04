@@ -21,7 +21,7 @@ class Contractor {
   final String contactPhone;
   final String twilioPhoneNumber;
   final String numberSetupType;
-  final String? calendlyUrl;
+  // calendlyUrl removed — column kept in DB for old data but no longer used in app
   final String? tradeType;
   final double? defaultJobValue;
   final int urgencyThresholdUrgentMin;
@@ -38,6 +38,10 @@ class Contractor {
   final String? fcmToken;
   final Map<String, bool> notificationPreferences;
   final Map<String, Map<String, String>> voicemailConfig;
+  // Google Calendar integration
+  final bool calendarBookingEnabled;
+  final DateTime? googleConnectedAt;
+  final int bookingSlotDurationMin;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -49,7 +53,6 @@ class Contractor {
     required this.contactPhone,
     required this.twilioPhoneNumber,
     this.numberSetupType = 'forwarding',
-    this.calendlyUrl,
     this.tradeType,
     this.defaultJobValue,
     this.urgencyThresholdUrgentMin = 60,
@@ -73,6 +76,9 @@ class Contractor {
       'custom_admin': true,
     },
     this.voicemailConfig = const {},
+    this.calendarBookingEnabled = false,
+    this.googleConnectedAt,
+    this.bookingSlotDurationMin = 30,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -111,7 +117,6 @@ class Contractor {
       contactPhone: json['contact_phone'] as String,
       twilioPhoneNumber: json['twilio_phone_number'] as String,
       numberSetupType: json['number_setup_type'] as String? ?? 'forwarding',
-      calendlyUrl: json['calendly_url'] as String?,
       tradeType: json['trade_type'] as String?,
       defaultJobValue: (json['default_job_value'] as num?)?.toDouble(),
       urgencyThresholdUrgentMin: json['urgency_threshold_urgent_min'] as int? ?? 60,
@@ -137,6 +142,11 @@ class Contractor {
         'custom_admin': true,
       },
       voicemailConfig: _parseVoicemailConfig(json['voicemail_config']),
+      calendarBookingEnabled: json['calendar_booking_enabled'] as bool? ?? false,
+      googleConnectedAt: json['google_connected_at'] != null
+          ? DateTime.parse(json['google_connected_at'] as String)
+          : null,
+      bookingSlotDurationMin: json['booking_slot_duration_min'] as int? ?? 30,
       createdAt: DateTime.parse(json['created_at'] as String),
       updatedAt: DateTime.parse(json['updated_at'] as String),
     );
@@ -151,7 +161,6 @@ class Contractor {
       'contact_phone': contactPhone,
       'twilio_phone_number': twilioPhoneNumber,
       'number_setup_type': numberSetupType,
-      'calendly_url': calendlyUrl,
       'trade_type': tradeType,
       'default_job_value': defaultJobValue,
       'urgency_threshold_urgent_min': urgencyThresholdUrgentMin,
@@ -168,6 +177,9 @@ class Contractor {
       'fcm_token': fcmToken,
       'notification_preferences': notificationPreferences,
       'voicemail_config': voicemailConfig,
+      'calendar_booking_enabled': calendarBookingEnabled,
+      'google_connected_at': googleConnectedAt?.toIso8601String(),
+      'booking_slot_duration_min': bookingSlotDurationMin,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
@@ -181,7 +193,6 @@ class Contractor {
     String? contactPhone,
     String? twilioPhoneNumber,
     String? numberSetupType,
-    String? calendlyUrl,
     String? tradeType,
     double? defaultJobValue,
     int? urgencyThresholdUrgentMin,
@@ -198,6 +209,9 @@ class Contractor {
     String? fcmToken,
     Map<String, bool>? notificationPreferences,
     Map<String, Map<String, String>>? voicemailConfig,
+    bool? calendarBookingEnabled,
+    DateTime? googleConnectedAt,
+    int? bookingSlotDurationMin,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -209,7 +223,6 @@ class Contractor {
       contactPhone: contactPhone ?? this.contactPhone,
       twilioPhoneNumber: twilioPhoneNumber ?? this.twilioPhoneNumber,
       numberSetupType: numberSetupType ?? this.numberSetupType,
-      calendlyUrl: calendlyUrl ?? this.calendlyUrl,
       tradeType: tradeType ?? this.tradeType,
       defaultJobValue: defaultJobValue ?? this.defaultJobValue,
       urgencyThresholdUrgentMin: urgencyThresholdUrgentMin ?? this.urgencyThresholdUrgentMin,
@@ -226,6 +239,9 @@ class Contractor {
       fcmToken: fcmToken ?? this.fcmToken,
       notificationPreferences: notificationPreferences ?? this.notificationPreferences,
       voicemailConfig: voicemailConfig ?? this.voicemailConfig,
+      calendarBookingEnabled: calendarBookingEnabled ?? this.calendarBookingEnabled,
+      googleConnectedAt: googleConnectedAt ?? this.googleConnectedAt,
+      bookingSlotDurationMin: bookingSlotDurationMin ?? this.bookingSlotDurationMin,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

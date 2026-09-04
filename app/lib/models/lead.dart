@@ -1,5 +1,5 @@
 /// Lead status progression:
-/// missed → consent_sent → opted_in → qualifying → booking_sent → booked → completed → followed_up
+/// missed → consent_sent → opted_in → qualifying → qualifying_email → booking_sent / callback_pending → booked → completed → followed_up
 /// Side branches: dnr_alert, no_consent
 enum LeadStatus {
   missed,
@@ -9,7 +9,9 @@ enum LeadStatus {
   qualifyingIssue,
   qualifyingUrgency,
   qualifyingName,
+  qualifyingEmail,      // New: asking caller for email
   bookingSent,
+  callbackPending,      // New: no booking enabled, callback promised
   booked,
   completed,
   followedUp,
@@ -25,7 +27,9 @@ enum LeadStatus {
       case qualifyingIssue: return 'qualifying_issue';
       case qualifyingUrgency: return 'qualifying_urgency';
       case qualifyingName: return 'qualifying_name';
+      case qualifyingEmail: return 'qualifying_email';
       case bookingSent: return 'booking_sent';
+      case callbackPending: return 'callback_pending';
       case booked: return 'booked';
       case completed: return 'completed';
       case followedUp: return 'followed_up';
@@ -43,7 +47,9 @@ enum LeadStatus {
       case 'qualifying_issue': return qualifyingIssue;
       case 'qualifying_urgency': return qualifyingUrgency;
       case 'qualifying_name': return qualifyingName;
+      case 'qualifying_email': return qualifyingEmail;
       case 'booking_sent': return bookingSent;
+      case 'callback_pending': return callbackPending;
       case 'booked': return booked;
       case 'completed': return completed;
       case 'followed_up': return followedUp;
@@ -64,7 +70,9 @@ enum LeadStatus {
       case qualifyingIssue:
       case qualifyingUrgency:
       case qualifyingName:
+      case qualifyingEmail:
       case bookingSent:
+      case callbackPending:
       case dnrAlert:
         return 1;
       case booked:
@@ -89,7 +97,9 @@ enum LeadStatus {
       case qualifyingIssue:
       case qualifyingUrgency:
       case qualifyingName:
+      case qualifyingEmail:
       case bookingSent:
+      case callbackPending:
       case dnrAlert:
         return 'contacted';
       case booked:
@@ -159,6 +169,7 @@ class Lead {
   final String contractorId;
   final String callerPhone;
   final String? callerName;
+  final String? callerEmail;          // New: collected during QualifyingEmail step
   final String? issueDescription;
   final Urgency urgency;
   final LeadStatus status;
@@ -167,7 +178,9 @@ class Lead {
   final int callCount;
   final double? estimatedValue;
   final DateTime? bookingTime;
-  final String? calendlyEventId;
+  final String? calendlyEventId;      // Legacy — kept for backward compat with old leads
+  final String? calendarEventId;      // New: native Google Calendar event ID
+  final String? calendarEventLink;    // New: htmlLink to Google Calendar event
   final bool dnrAlertSent;
   final DateTime? dnrAlertSentAt;
   final int? satisfactionScore;
@@ -186,6 +199,7 @@ class Lead {
     required this.contractorId,
     required this.callerPhone,
     this.callerName,
+    this.callerEmail,
     this.issueDescription,
     this.urgency = Urgency.unknown,
     this.status = LeadStatus.missed,
@@ -195,6 +209,8 @@ class Lead {
     this.estimatedValue,
     this.bookingTime,
     this.calendlyEventId,
+    this.calendarEventId,
+    this.calendarEventLink,
     this.dnrAlertSent = false,
     this.dnrAlertSentAt,
     this.satisfactionScore,
@@ -216,6 +232,7 @@ class Lead {
       contractorId: json['contractor_id'] as String,
       callerPhone: json['caller_phone'] as String,
       callerName: json['caller_name'] as String?,
+      callerEmail: json['caller_email'] as String?,
       issueDescription: json['issue_description'] as String?,
       urgency: Urgency.fromString(json['urgency'] as String? ?? 'unknown'),
       status: LeadStatus.fromString(json['status'] as String? ?? 'missed'),
@@ -229,6 +246,8 @@ class Lead {
           ? DateTime.parse(json['booking_time'] as String)
           : null,
       calendlyEventId: json['calendly_event_id'] as String?,
+      calendarEventId: json['calendar_event_id'] as String?,
+      calendarEventLink: json['calendar_event_link'] as String?,
       dnrAlertSent: json['dnr_alert_sent'] as bool? ?? false,
       dnrAlertSentAt: json['dnr_alert_sent_at'] != null
           ? DateTime.parse(json['dnr_alert_sent_at'] as String)
@@ -252,6 +271,7 @@ class Lead {
       'contractor_id': contractorId,
       'caller_phone': callerPhone,
       'caller_name': callerName,
+      'caller_email': callerEmail,
       'issue_description': issueDescription,
       'urgency': urgency.name,
       'status': status.value,
@@ -261,6 +281,8 @@ class Lead {
       'estimated_value': estimatedValue,
       'booking_time': bookingTime?.toIso8601String(),
       'calendly_event_id': calendlyEventId,
+      'calendar_event_id': calendarEventId,
+      'calendar_event_link': calendarEventLink,
       'dnr_alert_sent': dnrAlertSent,
       'dnr_alert_sent_at': dnrAlertSentAt?.toIso8601String(),
       'satisfaction_score': satisfactionScore,
@@ -278,6 +300,7 @@ class Lead {
     String? contractorId,
     String? callerPhone,
     String? callerName,
+    String? callerEmail,
     String? issueDescription,
     Urgency? urgency,
     LeadStatus? status,
@@ -287,6 +310,8 @@ class Lead {
     double? estimatedValue,
     DateTime? bookingTime,
     String? calendlyEventId,
+    String? calendarEventId,
+    String? calendarEventLink,
     bool? dnrAlertSent,
     DateTime? dnrAlertSentAt,
     int? satisfactionScore,
@@ -302,6 +327,7 @@ class Lead {
       contractorId: contractorId ?? this.contractorId,
       callerPhone: callerPhone ?? this.callerPhone,
       callerName: callerName ?? this.callerName,
+      callerEmail: callerEmail ?? this.callerEmail,
       issueDescription: issueDescription ?? this.issueDescription,
       urgency: urgency ?? this.urgency,
       status: status ?? this.status,
@@ -311,6 +337,8 @@ class Lead {
       estimatedValue: estimatedValue ?? this.estimatedValue,
       bookingTime: bookingTime ?? this.bookingTime,
       calendlyEventId: calendlyEventId ?? this.calendlyEventId,
+      calendarEventId: calendarEventId ?? this.calendarEventId,
+      calendarEventLink: calendarEventLink ?? this.calendarEventLink,
       dnrAlertSent: dnrAlertSent ?? this.dnrAlertSent,
       dnrAlertSentAt: dnrAlertSentAt ?? this.dnrAlertSentAt,
       satisfactionScore: satisfactionScore ?? this.satisfactionScore,

@@ -67,6 +67,12 @@ class LeadDetailScreen extends ConsumerWidget {
 
           const SizedBox(height: 12),
 
+          // Google Calendar booking card — shown when lead is booked via native calendar
+          if (lead.status == LeadStatus.booked && lead.calendarEventLink != null) ...[
+            _BookingCard(lead: lead),
+            const SizedBox(height: 12),
+          ],
+
           // Action buttons
           Row(
             children: [
@@ -204,6 +210,79 @@ class LeadDetailScreen extends ConsumerWidget {
           ),
 
           const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+}
+
+/// Booking confirmation card — shown when lead has a native Google Calendar booking.
+class _BookingCard extends StatelessWidget {
+  final Lead lead;
+  const _BookingCard({required this.lead});
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = AppColors.of(context);
+
+    final formattedTime = lead.bookingTime != null
+        ? '${lead.bookingTime!.day}.${lead.bookingTime!.month}.${lead.bookingTime!.year}  '
+            '${lead.bookingTime!.hour.toString().padLeft(2, '0')}:'
+            '${lead.bookingTime!.minute.toString().padLeft(2, '0')}'
+        : 'Booked';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.accentSuccess.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: colors.accentSuccess.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: colors.accentSuccess.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.calendar_month_rounded,
+                color: colors.accentSuccess, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Appointment confirmed',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.accentSuccess,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  formattedTime,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colors.textSecondary,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          if (lead.calendarEventLink != null)
+            TextButton(
+              onPressed: () => launchUrl(
+                Uri.parse(lead.calendarEventLink!),
+                mode: LaunchMode.externalApplication,
+              ),
+              style: TextButton.styleFrom(
+                foregroundColor: colors.accentSuccess,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
+              child: const Text('View →', style: TextStyle(fontSize: 13)),
+            ),
         ],
       ),
     );

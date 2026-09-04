@@ -8,13 +8,15 @@ import { env } from './config/env';
 // --- Route imports ---
 import twilioVoiceWebhook from './routes/webhooks/twilio-voice';
 import twilioSmsWebhook from './routes/webhooks/twilio-sms';
-import calendlyWebhook from './routes/webhooks/calendly';
 import deviceTokenRoute from './routes/api/device-token';
 import leadsRoute from './routes/api/leads';
 import statsRoute from './routes/api/stats';
 import contractorRoute from './routes/api/contractor';
 import voicemailRoute from './routes/api/voicemail';
 import adminRoute from './routes/api/admin';
+import calendarStatusRoute from './routes/api/calendar-status';
+import googleCalendarAuthRoute from './routes/auth/google-calendar';
+import publicBookingRoute from './routes/public/booking';
 
 // --- Middleware imports ---
 import { twilioSignatureMiddleware } from './middleware/twilio-signature';
@@ -54,7 +56,18 @@ if (process.env.SENTRY_DSN) {
 app.set('trust proxy', 1);
 
 // --- Middleware ---
-app.use(helmet());
+app.use(helmet({
+  // Allow the booking page to load Google Fonts
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      connectSrc: ["'self'"],
+    },
+  },
+}));
 
 // Fix #9: Restrict CORS to specific origins (mobile app doesn't need CORS,
 // but keep it ready for a future web dashboard)
@@ -67,8 +80,6 @@ app.use(
 );
 
 // Parse JSON with raw body capture for webhook signature verification.
-// The verify callback stores the raw buffer on req.rawBody so that
-// Calendly signature verification uses the exact original payload.
 app.use(
   express.json({
     verify: (req: express.Request, _res, buf) => {
@@ -78,7 +89,7 @@ app.use(
 );
 app.use(express.urlencoded({ extended: true })); // Twilio sends form-encoded
 
-// --- Static files (for voicemails) ---
+// --- Static files (for voicemails and booking page) ---
 app.use('/audio', express.static('public/audio'));
 
 // --- Health check (used by BetterUptime / UptimeRobot) ---
@@ -108,15 +119,24 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+// --- Public booking page (no auth, no rate limit — but token-gated) ---
+// Serves GET /book/:token (HTML) and POST/GET /api/public/* (JSON)
+app.use('/book', publicBookingRoute);
+app.use('/api/public', publicBookingRoute);
+
+// --- Google Calendar OAuth (unauthenticated — Google redirects here) ---
+app.use('/auth/google-calendar', googleCalendarAuthRoute);
+
 // --- API routes (authenticated + rate limited) ---
-app.use('/api', apiRateLimiter, authMiddleware, deviceTokenRoute, leadsRoute, statsRoute, contractorRoute, voicemailRoute);
+app.use('/api', apiRateLimiter, authMiddleware,
+  deviceTokenRoute, leadsRoute, statsRoute, contractorRoute, voicemailRoute, calendarStatusRoute);
 app.use('/api/admin', apiRateLimiter, authMiddleware, adminAuthMiddleware, adminRoute);
 
 // --- Webhook routes (validated by signature + rate limited) ---
 // Fix #7: Apply Twilio signature validation to Twilio webhook routes
 app.use('/webhooks/twilio-voice', webhookRateLimiter, twilioSignatureMiddleware, twilioVoiceWebhook);
 app.use('/webhooks/twilio-sms', webhookRateLimiter, twilioSignatureMiddleware, twilioSmsWebhook);
-app.use('/webhooks/calendly', webhookRateLimiter, calendlyWebhook);
+// Note: Calendly webhook removed — fully replaced by native booking flow
 
 // --- Cron jobs ---
 // DNR check: every 15 minutes

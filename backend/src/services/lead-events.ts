@@ -14,9 +14,14 @@ export type LeadEventType =
   | 'issue_provided'      // Caller described their issue
   | 'urgency_set'         // Urgency level determined
   | 'name_identified'     // Caller's name obtained
+  | 'email_provided'      // Caller provided their email
+  | 'email_skipped'       // Caller skipped email step
   | 'booking_link_sent'   // Booking link SMS sent
-  | 'booking_created'     // Calendly booking confirmed
-  | 'booking_cancelled'   // Calendly booking cancelled
+  | 'callback_pending'    // Callback promised (no calendar booking enabled)
+  | 'booking_created'     // Calendly booking confirmed (legacy)
+  | 'booking_cancelled'   // Calendly booking cancelled (legacy)
+  | 'booking_confirmed'   // Native Google Calendar booking confirmed
+  | 'booking_cancelled_native' // Native Google Calendar booking cancelled
   | 'status_changed'      // Lead status transition
   | 'emergency_call'      // Emergency call placed to contractor
   | 'dnr_alert'           // Did-not-respond alert fired

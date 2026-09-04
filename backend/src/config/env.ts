@@ -19,7 +19,7 @@ function required(key: string): string {
 
 /**
  * Optional env var — logs a warning if missing and returns the fallback.
- * Use for services that can degrade gracefully (FCM, Calendly).
+ * Use for services that can degrade gracefully (FCM, email).
  */
 function optional(key: string, fallback: string, warningMsg: string): string {
   const value = process.env[key];
@@ -50,14 +50,7 @@ export const env = {
     'TWILIO_API_KEY_SECRET not set — falling back to Auth Token for API calls (less secure)'
   ),
   twilioPhoneNumber: required('TWILIO_PHONE_NUMBER'),
-  // Optional: Calendly webhook signature verification is disabled if not set
-  calendlyWebhookSecret: optional(
-    'CALENDLY_WEBHOOK_SECRET',
-    '',
-    'CALENDLY_WEBHOOK_SECRET not set — Calendly webhook signature verification is DISABLED'
-  ),
   // Optional: Push notifications are disabled if Firebase service account is not set
-  // TODO: Test with frontend integration once Firebase project is created
   firebaseServiceAccountPath: optional(
     'FIREBASE_SERVICE_ACCOUNT_PATH',
     '',
@@ -75,6 +68,18 @@ export const env = {
     .split(',')
     .map((id) => id.trim())
     .filter(Boolean),
-  // Base URL of the deployed app (used for Twilio webhook configuration)
+  // Base URL of the deployed app (used for booking links + Twilio webhook configuration)
   appBaseUrl: process.env.APP_BASE_URL || '',
+  // Resend email service (migration 008)
+  resendApiKey: optional(
+    'RESEND_API_KEY',
+    '',
+    'RESEND_API_KEY not set — email confirmations are DISABLED'
+  ),
+  // JWT secret for booking page tokens (migration 008)
+  bookingTokenSecret: optional(
+    'BOOKING_TOKEN_SECRET',
+    'dev-booking-secret-change-me',
+    'BOOKING_TOKEN_SECRET not set — using insecure default (set this in production!)'
+  ),
 } as const;

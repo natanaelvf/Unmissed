@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book a time — Unmissed</title>
+  <meta name="description" content="Pick a convenient time slot to speak with your service provider." />
+  <meta name="robots" content="noindex" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal: #14b8a6;
+      --teal-muted: rgba(20, 184, 166, 0.12);
+      --bg: #0c0c0c;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: #2a2a2a;
+      --text: #e5e5e5;
+      --text-sub: #888;
+      --text-dim: #555;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    .logo {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--teal);
+      letter-spacing: -0.3px;
+      margin-bottom: 32px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--teal);
+      background: var(--teal-muted);
+      padding: 4px 10px;
+      border-radius: 100px;
+      margin-bottom: 12px;
+    }
+
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { font-size: 14px; color: var(--text-sub); margin-bottom: 0; line-height: 1.5; }
+
+    .meta-row {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .meta-item { font-size: 13px; color: var(--text-sub); }
+    .meta-item strong { color: var(--text); display: block; font-weight: 600; font-size: 13px; }
+
+    /* Date navigation */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .date-nav .label { font-size: 14px; font-weight: 600; }
+    .nav-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: #2a2a2a; }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* Slot grid */
+    .slots-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      min-height: 60px;
+    }
+
+    .slot-btn {
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      border-radius: var(--radius-sm);
+      padding: 10px 4px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .slot-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--teal-muted); }
+    .slot-btn.selected {
+      border-color: var(--teal);
+      background: var(--teal-muted);
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-dim);
+      padding: 16px 0;
+    }
+
+    /* Email step */
+    .form-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: block;
+    }
+    input[type="email"] {
+      width: 100%;
+      background: #111;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="email"]:focus { border-color: var(--teal); }
+    .field-hint { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+
+    /* Action button */
+    .btn-primary {
+      width: 100%;
+      background: var(--teal);
+      color: #0c0c0c;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      margin-top: 16px;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid rgba(20,184,166,0.3);
+      border-top-color: var(--teal);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error banner */
+    .error-banner {
+      background: rgba(239,68,68,0.1);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #f87171;
+      margin-bottom: 12px;
+    }
+
+    /* Success screen */
+    #success-screen { display: none; }
+    .success-icon {
+      font-size: 48px;
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .success-time {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--teal);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .success-sub {
+      font-size: 14px;
+      color: var(--text-sub);
+      text-align: center;
+    }
+
+    /* Animations */
+    .fade-in { animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .step { display: none; }
+    .step.active { display: block; }
+  </style>
+</head>
+<body>
+
+<div class="logo">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81 19.79 19.79 0 01.06 1.18 2 2 0 012 .02h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+  Unmissed
+</div>
+
+<!-- Booking flow -->
+<div id="booking-screen">
+
+  <!-- Info card -->
+  <div class="card fade-in" id="info-card">
+    <div class="badge">📅 Book a time</div>
+    <h1 id="business-name">Loading…</h1>
+    <p class="subtitle" id="issue-desc"></p>
+    <div class="meta-row" id="meta-row" style="display:none">
+      <div class="meta-item"><strong id="meta-name"></strong>Your name</div>
+      <div class="meta-item"><strong id="meta-duration"></strong>Per session</div>
+    </div>
+  </div>
+
+  <!-- Error banner -->
+  <div class="error-banner" id="error-banner" style="display:none"></div>
+
+  <!-- Step 1: Pick a slot -->
+  <div class="card step active fade-in" id="step-slots">
+    <div class="date-nav">
+      <button class="nav-btn" id="prev-day" onclick="changeDay(-1)">‹</button>
+      <span class="label" id="day-label">Loading…</span>
+      <button class="nav-btn" id="next-day" onclick="changeDay(1)">›</button>
+    </div>
+    <div class="slots-grid" id="slots-grid">
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Step 2: Email + confirm -->
+  <div class="card step fade-in" id="step-email" style="display:none">
+    <p style="font-size:14px; color:var(--text-sub); margin-bottom:16px;">
+      Selected: <strong id="selected-slot-label" style="color:var(--teal)"></strong>
+    </p>
+    <label class="form-label" for="email-input">Your email address <span style="color:var(--text-dim)">(optional)</span></label>
+    <input type="email" id="email-input" placeholder="you@example.com" autocomplete="email" />
+    <p class="field-hint">We'll send you a confirmation email. Leave blank to skip.</p>
+    <button class="btn-primary" id="confirm-btn" onclick="confirmBooking()">Confirm booking</button>
+    <button onclick="backToSlots()" style="width:100%;background:none;border:none;color:var(--text-dim);font-family:inherit;font-size:13px;cursor:pointer;margin-top:12px;padding:8px;">← Back to time slots</button>
+  </div>
+
+</div>
+
+<!-- Success screen -->
+<div id="success-screen">
+  <div class="card fade-in" style="text-align:center">
+    <div class="success-icon">✅</div>
+    <div class="success-time" id="success-time"></div>
+    <div class="success-sub" id="success-sub"></div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--text-dim)">
+      You'll receive a confirmation SMS shortly.<br>
+      <span id="success-email-note"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+const token = location.pathname.split('/book/')[1]?.split('/')[0];
+let allSlots = [];      // { start, end, label }
+let groupedByDay = {};  // { 'YYYY-MM-DD': [...slots] }
+let dayKeys = [];
+let currentDayIdx = 0;
+let selectedSlot = null;
+let leadInfo = {};
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+async function boot() {
+  if (!token) { showError('Invalid booking link.'); return; }
+  try {
+    const res = await fetch(`/api/public/slots/${token}`);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      showError(data.error || 'This booking link has expired or is invalid.');
+      return;
+    }
+    const data = await res.json();
+    leadInfo = data;
+
+    // Update info card
+    document.getElementById('business-name').textContent = data.businessName;
+    if (data.issue) {
+      document.getElementById('issue-desc').textContent = `Regarding: "${data.issue}"`;
+    }
+    if (data.callerName) {
+      document.getElementById('meta-name').textContent = data.callerName;
+      document.getElementById('meta-duration').textContent = `${data.slotDurationMin || 30} min`;
+      document.getElementById('meta-row').style.display = 'flex';
+    }
+
+    // Process slots
+    allSlots = (data.slots || []).map(s => ({
+      ...s,
+      label: formatTime(s.start),
+    }));
+
+    groupedByDay = {};
+    for (const slot of allSlots) {
+      const day = slot.start.split('T')[0];
+      if (!groupedByDay[day]) groupedByDay[day] = [];
+      groupedByDay[day].push(slot);
+    }
+    dayKeys = Object.keys(groupedByDay).sort();
+
+    if (dayKeys.length === 0) {
+      document.getElementById('slots-grid').innerHTML = '<div class="empty-state">No available slots in the next 7 days. Please call us directly.</div>';
+      document.getElementById('day-label').textContent = 'No availability';
+      document.getElementById('prev-day').disabled = true;
+      document.getElementById('next-day').disabled = true;
+      return;
+    }
+
+    renderDay(0);
+  } catch (err) {
+    showError('Failed to load booking slots. Please try again.');
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Day navigation
+// ---------------------------------------------------------------------------
+function changeDay(delta) {
+  const next = currentDayIdx + delta;
+  if (next < 0 || next >= dayKeys.length) return;
+  currentDayIdx = next;
+  renderDay(currentDayIdx);
+}
+
+function renderDay(idx) {
+  currentDayIdx = idx;
+  const dayKey = dayKeys[idx];
+  const slots = groupedByDay[dayKey] || [];
+
+  // Update day label
+  const d = new Date(dayKey + 'T12:00:00');
+  document.getElementById('day-label').textContent = d.toLocaleDateString(undefined, {
+    weekday: 'long', month: 'short', day: 'numeric',
+  });
+
+  // Nav button states
+  document.getElementById('prev-day').disabled = idx === 0;
+  document.getElementById('next-day').disabled = idx === dayKeys.length - 1;
+
+  // Render slot buttons
+  const grid = document.getElementById('slots-grid');
+  if (slots.length === 0) {
+    grid.innerHTML = '<div class="empty-state">No available slots this day.</div>';
+    return;
+  }
+  grid.innerHTML = slots.map(s => `
+    <button class="slot-btn ${selectedSlot?.start === s.start ? 'selected' : ''}"
+            onclick="selectSlot(${JSON.stringify(s).replace(/"/g, '&quot;')})">
+      ${s.label}
+    </button>
+  `).join('');
+}
+
+function formatTime(iso) {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+// ---------------------------------------------------------------------------
+// Slot selection
+// ---------------------------------------------------------------------------
+function selectSlot(slot) {
+  selectedSlot = slot;
+  // Show step 2
+  document.getElementById('step-slots').style.display = 'none';
+  const emailStep = document.getElementById('step-email');
+  emailStep.style.display = 'block';
+  emailStep.classList.remove('fade-in');
+  void emailStep.offsetWidth; // reflow
+  emailStep.classList.add('fade-in');
+
+  // Build label
+  const d = new Date(slot.start);
+  const label = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })
+    + ' at ' + formatTime(slot.start);
+  document.getElementById('selected-slot-label').textContent = label;
+}
+
+function backToSlots() {
+  document.getElementById('step-email').style.display = 'none';
+  document.getElementById('step-slots').style.display = 'block';
+}
+
+// ---------------------------------------------------------------------------
+// Booking confirmation
+// ---------------------------------------------------------------------------
+async function confirmBooking() {
+  const email = document.getElementById('email-input').value.trim() || null;
+  const btn = document.getElementById('confirm-btn');
+  btn.disabled = true;
+  btn.textContent = 'Confirming…';
+  hideError();
+
+  try {
+    const res = await fetch(`/api/public/book/${token}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slotStart: selectedSlot.start, slotEnd: selectedSlot.end, callerEmail: email }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      showError(data.error || 'Booking failed. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Confirm booking';
+      return;
+    }
+
+    // Show success
+    document.getElementById('booking-screen').style.display = 'none';
+    const successEl = document.getElementById('success-screen');
+    successEl.style.display = 'block';
+
+    const d = new Date(selectedSlot.start);
+    document.getElementById('success-time').textContent =
+      d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })
+      + ' · ' + formatTime(selectedSlot.start);
+    document.getElementById('success-sub').textContent =
+      `with ${leadInfo.businessName}`;
+    document.getElementById('success-email-note').textContent =
+      email ? `A confirmation email has been sent to ${email}.` : '';
+  } catch (err) {
+    showError('Network error. Please check your connection and try again.');
+    btn.disabled = false;
+    btn.textContent = 'Confirm booking';
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+function showError(msg) {
+  const el = document.getElementById('error-banner');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideError() {
+  document.getElementById('error-banner').style.display = 'none';
+}
+
+boot();
+</script>
+</body>
+</html>
